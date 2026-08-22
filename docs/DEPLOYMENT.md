@@ -1,10 +1,10 @@
 # GitHub Pages + Render 部署
 
-這套部署會讓 GitHub Pages 提供前端，Render 提供 Node.js API 與 WebSocket。正式資料建議放在 PostgreSQL；沒有設定 `DATABASE_URL` 時會退回本機 JSON，Render 重新部署後資料可能消失。
+這套部署會讓 GitHub Pages 提供前端，Render 提供 Node.js API 與 WebSocket。預設不需要資料庫，資料會寫入 Render 容器內的 JSON；重新部署或容器重建時資料可能清空，適合目前測試階段。
 
-## 1. 建立 PostgreSQL
+## 1. 資料儲存
 
-在 Neon、Supabase 或其他 PostgreSQL 服務建立資料庫，取得完整連線字串：
+目前可直接跳過資料庫設定。若未來需要長期保存帳號與歷史對局，再建立 PostgreSQL，並在 Render 設定完整連線字串：
 
 ```text
 postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
@@ -16,9 +16,8 @@ postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
 
 1. 將專案推送到 GitHub。
 2. 在 Render 選擇 **New > Blueprint**，連接這個 repository；Render 會讀取根目錄的 `render.yaml`。
-3. 設定 `DATABASE_URL` 為 PostgreSQL 連線字串。
-4. 設定 `A_DUEL_ALLOWED_ORIGINS` 為 GitHub Pages 的來源，例如 `https://YOUR_NAME.github.io`，不要包含最後的 `/`。
-5. 完成後記下網址，例如 `https://a-duel-api.onrender.com`。
+3. `render.yaml` 已設定 GitHub Pages 的允許來源，不需再填環境變數。
+4. 完成後記下網址，例如 `https://a-duel-api.onrender.com`。
 
 可用以下網址確認後端：
 
@@ -47,6 +46,6 @@ https://YOUR_NAME.github.io/REPOSITORY_NAME/
 2. 用另一個無痕視窗登入另一名玩家。
 3. 建立及加入同一房間，確認雙方即時看到選牌與戰鬥結果。
 4. 重新整理雙方頁面，確認可自動重連。
-5. 重新部署 Render 後確認登入與未完成對局仍存在，驗證 PostgreSQL 已生效。
+5. 重新整理雙方頁面，確認仍可繼續目前對局。
 
 Render 免費服務閒置後會休眠。第一個請求需要等待冷啟動；正式公開營運時應改用不休眠方案。
