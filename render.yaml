@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: a-duel-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: A_DUEL_HOST
+        value: 0.0.0.0
+      - key: A_DUEL_ALLOWED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
