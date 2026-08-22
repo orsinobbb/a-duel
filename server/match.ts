@@ -1,12 +1,12 @@
 import {
   BattleState,
+  confirmRematch,
   confirmAttack,
   confirmDefense,
   getBattlePhase,
   otherPlayer,
   passTurn,
   resolveBattle,
-  restartBattle,
   selectDefenseCard,
   selectAttacker,
   selectTarget,
@@ -23,7 +23,7 @@ export function applyAuthorizedAction(state: BattleState, action: BattleAction, 
 
   if (action.type === 'restart') {
     if (phase !== 'finished') return { ok: false, error: 'game_in_progress' };
-    return { ok: true, state: restartBattle(state, true) };
+    return { ok: true, state: confirmRematch(state, seat, true) };
   }
 
   if (phase === 'finished') return { ok: false, error: 'game_finished' };
@@ -94,6 +94,6 @@ function applyBattleAction(state: BattleState, action: BattleAction): BattleStat
     case 'pass':
       return passTurn(state);
     case 'restart':
-      return restartBattle(state, true);
+      return confirmRematch(state, state.localPlayer, true);
   }
 }

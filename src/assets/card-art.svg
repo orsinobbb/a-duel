@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 120">
+  <defs>
+    <style>
+      .ink{stroke:#26302c;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.gold{fill:#d4a934}.red{fill:#b84d44}.green{fill:#35776d}.paper{fill:#fff8e8}.none{fill:none}
+    </style>
+  </defs>
+
+  <g transform="translate(0)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M25 43l9 8 16-23 16 23 9-8-5 27H30z" class="gold ink"/>
+    <path d="M34 75h32l7 24H27z" class="red ink"/>
+    <path d="M39 75v24M61 75v24" class="none ink"/>
+    <circle cx="50" cy="20" r="4" class="green ink"/>
+  </g>
+
+  <g transform="translate(100)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M31 72c0-20 8-32 19-32s19 12 19 32" class="green ink"/>
+    <path d="M31 71h38l-8 28H39z" class="gold ink"/>
+    <path d="M50 40c6-19 23-19 27-14-11 1-13 9-15 17" class="red ink"/>
+    <path d="M42 59h16M50 59v18" class="none ink"/>
+    <circle cx="50" cy="59" r="5" class="paper ink"/>
+  </g>
+
+  <g transform="translate(200)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M25 49h10V35h11v14h9V35h11v14h9v48H25z" class="red ink"/>
+    <path d="M37 97V73c0-9 5-15 13-15s13 6 13 15v24" class="gold ink"/>
+    <path d="M44 82h12M50 76v21" class="none ink"/>
+    <path d="M31 43h38" class="none ink"/>
+  </g>
+
+  <g transform="translate(300)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M50 25l27 11v22c0 20-10 34-27 42-17-8-27-22-27-42V36z" class="green ink"/>
+    <path d="M50 38v47M35 57h30" class="none ink"/>
+    <path d="M50 38l15 19-15 28-15-28z" class="gold ink"/>
+    <circle cx="50" cy="57" r="5" class="red ink"/>
+  </g>
+
+  <g transform="translate(400)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M31 91c3-25 6-42 25-54l17 5-9 10 10 16-19-2-8 11 8 20z" class="green ink"/>
+    <path d="M56 37l-3-13 14 8z" class="red ink"/>
+    <circle cx="60" cy="45" r="3" fill="#26302c"/>
+    <path d="M27 97h49M36 83l-10-9M54 66l-12-8" class="none ink"/>
+  </g>
+
+  <g transform="translate(500)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M30 45h40l-4 51H34z" class="red ink"/>
+    <path d="M28 45c0-7 5-12 12-12h20c7 0 12 5 12 12z" class="gold ink"/>
+    <path d="M50 33V20c0-7 8-9 12-13" class="none ink"/>
+    <path d="M66 8l5-6M69 14l9-1M61 5l-1-4" class="none ink"/>
+    <path d="M36 61h28M35 79h30" class="none ink"/>
+    <circle cx="50" cy="70" r="7" class="paper ink"/>
+  </g>
+
+  <g transform="translate(600)">
+    <circle cx="50" cy="58" r="39" class="paper ink"/>
+    <path d="M20 52l10-17 8 17 12-20 12 20 8-17 10 17-10 15 10 17-13-4-7 17-10-19-10 19-7-17-13 4 10-17z" class="gold ink"/>
+    <path d="M20 52h60M30 67h40" class="none ink"/>
+    <circle cx="50" cy="60" r="9" class="red ink"/>
+    <path d="M45 60h10" class="none ink"/>
+  </g>
+</svg>

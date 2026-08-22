@@ -2,12 +2,12 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Crown, Gamepad2, LogOut, Radio, UserRound } from 'lucide-react';
 import {
   BattleState,
+  confirmRematch,
   confirmAttack,
   confirmDefense,
   createInitialState,
   passTurn,
   resolveBattle,
-  restartBattle,
   selectDefenseCard,
   selectAttacker,
   selectTarget,
@@ -339,7 +339,7 @@ function applyLocalAction(state: BattleState, action: BattleAction): BattleState
     case 'pass':
       return passTurn(state);
     case 'restart':
-      return restartBattle(state, true);
+      return confirmRematch(state, state.localPlayer, true);
   }
 }
 

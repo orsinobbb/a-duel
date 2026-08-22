@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   BattleState,
+  DUEL_ANIMATION_MS,
+  DUEL_DURATION_MS,
+  DUEL_RESULT_REVEAL_MS,
   canResolve,
   confirmAttack,
   confirmDefense,
+  confirmRematch,
   createInitialState,
   forfeitBattle,
   getBattlePhase,
@@ -70,6 +74,29 @@ describe('battle engine', () => {
     const restarted = restartBattle(blocked);
     expect(restarted.gameStatus).toBe('playing');
     expect(restarted.winner).toBeNull();
+  });
+
+  it('holds the result for three seconds after the four-second duel animation', () => {
+    expect(DUEL_ANIMATION_MS).toBe(4000);
+    expect(DUEL_RESULT_REVEAL_MS).toBe(3000);
+    expect(DUEL_DURATION_MS).toBe(7000);
+  });
+
+  it('starts a rematch only after both players agree', () => {
+    const finished: BattleState = {
+      ...createInitialState(),
+      gameStatus: 'finished',
+      winner: 'A',
+    };
+
+    const playerAReady = confirmRematch(finished, 'A');
+    expect(playerAReady.gameStatus).toBe('finished');
+    expect(playerAReady.rematchReady).toEqual({ A: true, B: false });
+
+    const restarted = confirmRematch(playerAReady, 'B');
+    expect(restarted.gameStatus).toBe('playing');
+    expect(restarted.winner).toBeNull();
+    expect(restarted.rematchReady).toEqual({ A: false, B: false });
   });
 
   it('skips defeated cards when finding adjacent cover options', () => {
@@ -165,8 +192,8 @@ describe('battle engine', () => {
     expect(state.selectedCoverId).toBe('B-0');
     state = confirmDefense(state, 1000);
     expect(getBattlePhase(state)).toBe('duel');
-    expect(canResolve(state, 4999)).toBe(false);
-    expect(canResolve(state, 5000)).toBe(true);
+    expect(canResolve(state, 7999)).toBe(false);
+    expect(canResolve(state, 8000)).toBe(true);
   });
 
   it('locks attack selections after the attacker confirms', () => {

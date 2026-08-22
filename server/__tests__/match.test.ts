@@ -79,6 +79,26 @@ describe('online match rules', () => {
     expect(getMatchLifecycle(match)).toBe('finished');
   });
 
+  it('requires both seats to approve a rematch', () => {
+    const finished = {
+      ...createInitialState(),
+      gameStatus: 'finished' as const,
+      winner: 'A' as const,
+    };
+
+    const firstVote = applyAuthorizedAction(finished, { type: 'restart' }, 'A');
+    expect(firstVote.ok).toBe(true);
+    if (!firstVote.ok) return;
+    expect(firstVote.state.gameStatus).toBe('finished');
+    expect(firstVote.state.rematchReady).toEqual({ A: true, B: false });
+
+    const secondVote = applyAuthorizedAction(firstVote.state, { type: 'restart' }, 'B');
+    expect(secondVote.ok).toBe(true);
+    if (!secondVote.ok) return;
+    expect(secondVote.state.gameStatus).toBe('playing');
+    expect(secondVote.state.rematchReady).toEqual({ A: false, B: false });
+  });
+
   it('rejects malformed actions at the socket boundary', () => {
     expect(isBattleAction({ type: 'selectTarget', cardId: '' })).toBe(false);
     expect(isBattleAction({ type: 'selectDefenseCard', cardId: '' })).toBe(false);

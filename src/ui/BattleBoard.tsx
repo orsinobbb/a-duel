@@ -1,30 +1,27 @@
 import { useEffect, useState } from 'react';
 import {
-  Bomb,
   Copy,
-  Crown,
   Eye,
   Flag,
   Layers3,
   LogOut,
   RotateCcw,
-  Shield,
   ShieldCheck,
   SkipForward,
   Swords,
-  TriangleAlert,
 } from 'lucide-react';
 import {
   BattleCard,
   BattleState,
+  DUEL_ANIMATION_MS,
   DUEL_DURATION_MS,
-  DUEL_RESULT_REVEAL_MS,
   Player,
   getAliveCards,
   getBattlePhase,
   getCardLabel,
   getCoverOptions,
   getDuelPreview,
+  isRematchReady,
   labelPlayer,
   otherPlayer,
 } from '../engine/battle';
@@ -66,6 +63,7 @@ export function BattleBoard({
     : target;
   const canUseOnlineControls = !online || (match?.status === 'playing' && connectionStatus === 'online');
   const playerSeat = seat === 'A' || seat === 'B' ? seat : null;
+  const rematchPlayer = online ? playerSeat : state.localPlayer;
   const defender = otherPlayer(state.currentTurn);
   const canDefend = Boolean(
     target &&
@@ -87,7 +85,7 @@ export function BattleBoard({
       return;
     }
 
-    const revealAt = state.duelStartedAt + DUEL_DURATION_MS - DUEL_RESULT_REVEAL_MS;
+    const revealAt = state.duelStartedAt + DUEL_ANIMATION_MS;
     const revealTimer = window.setTimeout(() => setDuelResultVisible(true), Math.max(0, revealAt - Date.now()));
     const resolveTimer = !online
       ? window.setTimeout(() => onAction({ type: 'resolve' }), Math.max(0, state.duelStartedAt + DUEL_DURATION_MS - Date.now()))
@@ -202,8 +200,7 @@ export function BattleBoard({
             state={state}
             canAttack={canAttack}
             canDefend={canDefend}
-            online={online}
-            playerSeat={playerSeat}
+            rematchPlayer={rematchPlayer}
             connectionStatus={connectionStatus}
             onAction={onAction}
           />
@@ -263,6 +260,13 @@ export function BattleBoard({
             <div>
               <span>對局結束</span>
               <strong>{state.winner ? `${playerName(state.winner, match)} 勝利` : '本局平手'}</strong>
+              <div className="rematchVotes" aria-label="下一局同意狀態">
+                {(['A', 'B'] as Player[]).map((player) => (
+                  <span className={isRematchReady(state, player) ? 'ready' : ''} key={player}>
+                    Player {player} · {isRematchReady(state, player) ? '已同意' : '等待確認'}
+                  </span>
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -348,10 +352,10 @@ export function BattleBoard({
           <button
             type="button"
             onClick={() => onAction({ type: 'restart' })}
-            disabled={phase !== 'finished' || (online && !playerSeat) || connectionStatus === 'reconnecting'}
+            disabled={phase !== 'finished' || !rematchPlayer || isRematchReady(state, rematchPlayer) || connectionStatus === 'reconnecting'}
           >
             <RotateCcw size={18} />
-            再來一局
+            {rematchPlayer && isRematchReady(state, rematchPlayer) ? '已同意，等待對手' : '同意再一局'}
           </button>
         </section>
 
@@ -376,8 +380,7 @@ type BattleActionsProps = {
   state: BattleState;
   canAttack: boolean;
   canDefend: boolean;
-  online: boolean;
-  playerSeat: Player | null;
+  rematchPlayer: Player | null;
   connectionStatus: ConnectionStatus;
   onAction(action: BattleAction): void;
 };
@@ -387,8 +390,7 @@ function BattleActions({
   state,
   canAttack,
   canDefend,
-  online,
-  playerSeat,
+  rematchPlayer,
   connectionStatus,
   onAction,
 }: BattleActionsProps) {
@@ -427,10 +429,10 @@ function BattleActions({
       <button
         type="button"
         onClick={() => onAction({ type: 'restart' })}
-        disabled={phase !== 'finished' || (online && !playerSeat) || connectionStatus === 'reconnecting'}
+        disabled={phase !== 'finished' || !rematchPlayer || isRematchReady(state, rematchPlayer) || connectionStatus === 'reconnecting'}
       >
         <RotateCcw size={18} />
-        重新開始
+        {rematchPlayer && isRematchReady(state, rematchPlayer) ? '已同意，等待對手' : '同意再一局'}
       </button>
     </section>
   );
@@ -590,11 +592,12 @@ function isCardActionable(
 }
 
 function cardIcon(card: BattleCard) {
-  if (card.kind === 'explosive') return <Bomb size={25} />;
-  if (card.kind === 'trap') return <TriangleAlert size={25} />;
-  if ((card.rank ?? 0) >= 4) return <Crown size={25} />;
-  if ((card.rank ?? 0) >= 2) return <ShieldCheck size={25} />;
-  return <Shield size={25} />;
+  const artwork = card.kind === 'explosive'
+    ? 'explosive'
+    : card.kind === 'trap'
+      ? 'trap'
+      : `rank${card.rank}`;
+  return <span className={`cardArtwork ${artwork}`} aria-hidden="true" />;
 }
 
 function playerName(player: Player, match: MatchSummary | null): string {
@@ -614,8 +617,13 @@ function phasePrompt(state: BattleState, match: MatchSummary | null, seat: Playe
   const phase = getBattlePhase(state);
   if (phase === 'select-attack') return '選擇攻擊牌與目標，確認後交給防守方';
   if (phase === 'select-defense') return `${playerName(otherPlayer(state.currentTurn), match)} 選擇防守牌`;
-  if (phase === 'duel') return '對決進行中，畫面將在四秒後自動結算';
-  return '可由任一玩家發起下一局';
+  if (phase === 'duel') return '四秒交鋒後顯示結果三秒，期間操作鎖定';
+
+  const rematchPlayer = seat === 'A' || seat === 'B' ? seat : match ? null : state.localPlayer;
+  if (!rematchPlayer) return '等待雙方玩家同意下一局';
+  if (isRematchReady(state, rematchPlayer)) return '你已同意，等待另一位玩家確認';
+  if (isRematchReady(state, otherPlayer(rematchPlayer))) return '對手已同意，等你確認後開始';
+  return '雙方都同意後才會開始下一局';
 }
 
 function connectionLabel(status: ConnectionStatus): string {

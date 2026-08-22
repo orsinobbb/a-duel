@@ -789,6 +789,24 @@ h2 {
   color: currentColor;
 }
 
+.cardArtwork {
+  display: block;
+  width: 58px;
+  height: 70px;
+  background-image: url('./assets/card-art.svg');
+  background-repeat: no-repeat;
+  background-size: 700% 100%;
+  filter: drop-shadow(0 3px 2px rgb(38 48 44 / 16%));
+}
+
+.cardArtwork.rank5 { background-position: 0 0; }
+.cardArtwork.rank4 { background-position: 16.6667% 0; }
+.cardArtwork.rank3 { background-position: 33.3333% 0; }
+.cardArtwork.rank2 { background-position: 50% 0; }
+.cardArtwork.rank1 { background-position: 66.6667% 0; }
+.cardArtwork.explosive { background-position: 83.3333% 0; }
+.cardArtwork.trap { background-position: 100% 0; }
+
 .battleCard strong {
   width: 100%;
   overflow: hidden;
@@ -977,12 +995,12 @@ h2 {
 
 .duelFighter.attacker {
   left: 0;
-  animation: duel-charge-left 3s cubic-bezier(.22, .8, .36, 1) forwards;
+  animation: duel-charge-left 4s cubic-bezier(.22, .8, .36, 1) forwards;
 }
 
 .duelFighter.defender {
   right: 0;
-  animation: duel-charge-right 3s cubic-bezier(.22, .8, .36, 1) forwards;
+  animation: duel-charge-right 4s cubic-bezier(.22, .8, .36, 1) forwards;
 }
 
 .duelFighterRole {
@@ -995,7 +1013,7 @@ h2 {
   display: grid;
   place-items: center;
   color: var(--green);
-  transform: scale(1.7);
+  transform: scale(1.15);
 }
 
 .duelFighter strong {
@@ -1019,7 +1037,12 @@ h2 {
   color: #fff;
   opacity: 0;
   transform: translate(-50%, -50%) scale(.2);
-  animation: duel-impact 3s ease-out forwards;
+  animation: duel-impact 4s ease-out forwards;
+}
+
+.duelOverlay.revealed .duelArena {
+  opacity: .72;
+  transition: opacity 180ms ease;
 }
 
 .duelOverlayStatus {
@@ -1042,6 +1065,22 @@ h2 {
   margin: 0;
   color: var(--muted);
   font-size: 0.74rem;
+}
+
+.rematchVotes {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.rematchVotes span {
+  color: var(--muted);
+  font-size: .64rem;
+  font-weight: 750;
+}
+
+.rematchVotes span.ready {
+  color: var(--green);
 }
 
 @keyframes duel-charge-left {
@@ -1544,6 +1583,11 @@ h2 {
     flex: 0 0 96px;
     min-height: 146px;
     scroll-snap-align: start;
+  }
+
+  .cardArtwork {
+    width: 52px;
+    height: 62px;
   }
 
   .duelLane {

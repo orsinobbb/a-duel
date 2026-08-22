@@ -5,8 +5,9 @@ export type MessageKind = 'info' | 'warn' | 'error';
 export type CardKind = 'rank' | 'explosive' | 'trap';
 export type BattlePhase = 'select-attack' | 'select-defense' | 'duel' | 'finished';
 
-export const DUEL_DURATION_MS = 4000;
-export const DUEL_RESULT_REVEAL_MS = 1000;
+export const DUEL_ANIMATION_MS = 4000;
+export const DUEL_RESULT_REVEAL_MS = 3000;
+export const DUEL_DURATION_MS = DUEL_ANIMATION_MS + DUEL_RESULT_REVEAL_MS;
 
 export type BattleCard = {
   id: string;
@@ -38,6 +39,7 @@ export type BattleState = {
   messages: BattleMessage[];
   gameStatus: GameStatus;
   winner: Player | null;
+  rematchReady: Record<Player, boolean>;
 };
 
 export type ResolveOutcome = {
@@ -80,6 +82,7 @@ export function createInitialState(localPlayer: Player = 'A', shuffle = false, r
     messages: [{ kind: 'info', text: 'Player A 選擇攻擊牌' }],
     gameStatus: 'playing',
     winner: null,
+    rematchReady: { A: false, B: false },
   };
 }
 
@@ -308,6 +311,35 @@ export function restartBattle(state: BattleState, shuffle = false): BattleState 
   };
 }
 
+export function confirmRematch(state: BattleState, player: Player, shuffle = false): BattleState {
+  if (state.gameStatus !== 'finished') {
+    return addMessage(state, 'warn', '對局尚未結束，不能開始下一局');
+  }
+
+  const rematchReady = {
+    A: state.rematchReady?.A ?? false,
+    B: state.rematchReady?.B ?? false,
+    [player]: true,
+  };
+
+  if (rematchReady.A && rematchReady.B) {
+    return {
+      ...restartBattle(state, shuffle),
+      messages: [{ kind: 'info', text: '雙方已同意，開始新的一局' }],
+    };
+  }
+
+  return {
+    ...state,
+    rematchReady,
+    messages: [{ kind: 'info', text: `${labelPlayer(player)} 已同意再來一局，等待 ${labelPlayer(otherPlayer(player))}` }],
+  };
+}
+
+export function isRematchReady(state: BattleState, player: Player): boolean {
+  return state.rematchReady?.[player] ?? false;
+}
+
 export function forfeitBattle(state: BattleState, player: Player): BattleState {
   if (state.gameStatus === 'finished') return state;
 
@@ -316,6 +348,7 @@ export function forfeitBattle(state: BattleState, player: Player): BattleState {
     ...clearSelections(state),
     gameStatus: 'finished',
     winner,
+    rematchReady: { A: false, B: false },
     messages: [{ kind: 'warn', text: `${labelPlayer(player)} 已投降，${labelPlayer(winner)} 獲勝` }],
   };
 }
