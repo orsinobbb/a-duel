@@ -25,15 +25,29 @@
 }
 
 html {
-  min-width: 320px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 100%;
+  overflow-x: hidden;
   background: #f1f0eb;
+  touch-action: pan-x pan-y;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 button,
@@ -104,6 +118,9 @@ h2 {
 }
 
 .appRoot {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 100vh;
   background: #f1f0eb;
 }
@@ -504,6 +521,9 @@ h2 {
 .gameView {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: calc(100vh - 68px);
 }
 
