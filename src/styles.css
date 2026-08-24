@@ -701,6 +701,30 @@ h2 {
   background: linear-gradient(150deg, #ffffff, #f1e4e1);
 }
 
+.battleCard.cardFace {
+  display: block;
+  align-self: start;
+  aspect-ratio: 2 / 3;
+  min-height: 0;
+  max-height: none;
+  padding: 3px;
+  background: #101a2c;
+}
+
+.battleCard.cardFace.ownerB {
+  background: #2d0908;
+}
+
+.cardFaceArtwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
 .battleCard:disabled {
   cursor: default;
   opacity: 1;
@@ -733,14 +757,27 @@ h2 {
 }
 
 .battleCard.cardBack {
-  border-color: #315e56;
-  color: #eaf5f1;
+  color: #f8edd1;
   background:
     linear-gradient(45deg, transparent 45%, rgb(255 255 255 / 8%) 45% 55%, transparent 55%),
     linear-gradient(-45deg, transparent 45%, rgb(255 255 255 / 7%) 45% 55%, transparent 55%),
-    #174d46;
+    #18233d;
   background-size: 20px 20px;
-  box-shadow: 0 8px 18px rgb(23 48 43 / 20%), inset 0 0 0 4px #d4b86c, inset 0 0 0 6px #174d46;
+  box-shadow: 0 8px 18px rgb(23 48 43 / 20%), inset 0 0 0 4px #d4b86c, inset 0 0 0 6px #18233d;
+}
+
+.battleCard.ownerA.cardBack {
+  border-color: #386aae;
+}
+
+.battleCard.ownerB.cardBack {
+  border-color: #9a362d;
+  background:
+    linear-gradient(45deg, transparent 45%, rgb(255 255 255 / 8%) 45% 55%, transparent 55%),
+    linear-gradient(-45deg, transparent 45%, rgb(255 255 255 / 7%) 45% 55%, transparent 55%),
+    #4c100d;
+  background-size: 20px 20px;
+  box-shadow: 0 8px 18px rgb(48 14 11 / 24%), inset 0 0 0 4px #d4b86c, inset 0 0 0 6px #4c100d;
 }
 
 .battleCard.revealed {
@@ -756,11 +793,15 @@ h2 {
   opacity: 0.65;
 }
 
+.cardFace .cardIndex {
+  display: none;
+}
+
 .cardRole {
   position: absolute;
   top: 7px;
   left: 7px;
-  z-index: 1;
+  z-index: 2;
   border-radius: 4px;
   padding: 3px 5px;
   color: #fff;
@@ -782,31 +823,6 @@ h2 {
   background: var(--gold);
 }
 
-.cardIcon {
-  display: grid;
-  align-self: center;
-  place-items: center;
-  color: currentColor;
-}
-
-.cardArtwork {
-  display: block;
-  width: 58px;
-  height: 70px;
-  background-image: url('./assets/card-art.svg');
-  background-repeat: no-repeat;
-  background-size: 700% 100%;
-  filter: drop-shadow(0 3px 2px rgb(38 48 44 / 16%));
-}
-
-.cardArtwork.rank5 { background-position: 0 0; }
-.cardArtwork.rank4 { background-position: 16.6667% 0; }
-.cardArtwork.rank3 { background-position: 33.3333% 0; }
-.cardArtwork.rank2 { background-position: 50% 0; }
-.cardArtwork.rank1 { background-position: 66.6667% 0; }
-.cardArtwork.explosive { background-position: 83.3333% 0; }
-.cardArtwork.trap { background-position: 100% 0; }
-
 .battleCard strong {
   width: 100%;
   overflow: hidden;
@@ -825,7 +841,7 @@ h2 {
 }
 
 .cardBack .cardMeta {
-  color: #d9e9e4;
+  color: #f8edd1;
 }
 
 .backMonogram {
@@ -844,7 +860,8 @@ h2 {
 .revealMark {
   position: absolute;
   top: 6px;
-  left: 6px;
+  right: 6px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -984,8 +1001,8 @@ h2 {
   grid-template-rows: auto 1fr auto;
   align-items: center;
   width: 128px;
-  min-height: 172px;
-  padding: 10px;
+  height: 184px;
+  padding: 6px;
   border: 2px solid var(--ink);
   border-radius: 6px;
   background: #fff;
@@ -1010,10 +1027,22 @@ h2 {
 }
 
 .duelFighterIcon {
-  display: grid;
-  place-items: center;
-  color: var(--green);
-  transform: scale(1.15);
+  display: block;
+  width: 78px;
+  height: 117px;
+  margin: 2px auto;
+  overflow: hidden;
+  border: 1px solid #c5a95b;
+  border-radius: 4px;
+  background: #17243e;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 22%);
+}
+
+.duelCardArtwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .duelFighter strong {
@@ -1583,11 +1612,6 @@ h2 {
     flex: 0 0 96px;
     min-height: 146px;
     scroll-snap-align: start;
-  }
-
-  .cardArtwork {
-    width: 52px;
-    height: 62px;
   }
 
   .duelLane {

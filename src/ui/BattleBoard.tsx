@@ -27,6 +27,7 @@ import {
 } from '../engine/battle';
 import type { BattleAction, MatchSummary, PlayerSeat } from '../network/types';
 import type { ConnectionStatus } from '../network/connection';
+import { getCardArtworkUrl } from './cardArtwork';
 
 type BattleBoardProps = {
   state: BattleState;
@@ -114,13 +115,13 @@ export function BattleBoard({
           <div className="duelArena">
             <article className="duelFighter attacker">
               <span className="duelFighterRole">ATTACK</span>
-              <span className="duelFighterIcon">{cardIcon(attacker)}</span>
+              <span className="duelFighterIcon"><CardArtwork card={attacker} className="duelCardArtwork" /></span>
               <strong>{cardDisplayName(attacker)}</strong>
             </article>
             <div className="duelImpact" aria-hidden="true"><Swords size={36} /></div>
             <article className="duelFighter defender">
               <span className="duelFighterRole">{state.defenseMode === 'cover' ? 'COVER' : 'FACE'}</span>
-              <span className="duelFighterIcon">{cardIcon(defenseCard)}</span>
+              <span className="duelFighterIcon"><CardArtwork card={defenseCard} className="duelCardArtwork" /></span>
               <strong>{cardDisplayName(defenseCard)}</strong>
             </article>
           </div>
@@ -495,6 +496,7 @@ type BattleCardButtonProps = {
 function BattleCardButton({ card, faceVisible, state, coverOptions, actionable, onClick }: BattleCardButtonProps) {
   const classes = ['battleCard', `owner${card.owner}`];
   if (!faceVisible) classes.push('cardBack');
+  if (faceVisible) classes.push('cardFace');
   if (card.revealed && faceVisible) classes.push('revealed');
   if (!card.alive) classes.push('defeated');
   if (actionable) classes.push('actionable');
@@ -524,16 +526,14 @@ function BattleCardButton({ card, faceVisible, state, coverOptions, actionable, 
       {roleLabel && <span className={`cardRole ${roleLabel === '攻擊牌' ? 'attackerRole' : roleLabel === '被攻擊牌' ? 'targetRole' : 'coverRole'}`}>{roleLabel}</span>}
       {faceVisible ? (
         <>
-          <span className="cardIcon">{cardIcon(card)}</span>
-          <strong>{card.name}</strong>
-          <span className="cardMeta">{getCardLabel(card)}</span>
+          <CardArtwork card={card} className="cardFaceArtwork" />
           {card.revealed && card.alive && <span className="revealMark"><Eye size={11} />已揭露</span>}
         </>
       ) : (
         <>
-          <span className="backMonogram">A</span>
+          <span className="backMonogram">{card.owner}</span>
           <Layers3 className="backIcon" size={22} />
-          <span className="cardMeta">A DUEL</span>
+          <span className="cardMeta">{card.owner === 'A' ? 'BLUE DECK' : 'RED DECK'}</span>
         </>
       )}
       {!card.alive && <span className="defeatedMark">退場</span>}
@@ -591,13 +591,8 @@ function isCardActionable(
   return false;
 }
 
-function cardIcon(card: BattleCard) {
-  const artwork = card.kind === 'explosive'
-    ? 'explosive'
-    : card.kind === 'trap'
-      ? 'trap'
-      : `rank${card.rank}`;
-  return <span className={`cardArtwork ${artwork}`} aria-hidden="true" />;
+function CardArtwork({ card, className }: { card: BattleCard; className: string }) {
+  return <img className={className} src={getCardArtworkUrl(card)} alt="" draggable={false} aria-hidden="true" />;
 }
 
 function playerName(player: Player, match: MatchSummary | null): string {
