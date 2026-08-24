@@ -118,7 +118,7 @@ export function BattleBoard({
               <span className="duelFighterIcon"><CardArtwork card={attacker} className="duelCardArtwork" /></span>
               <strong>{cardDisplayName(attacker)}</strong>
             </article>
-            <div className="duelImpact" aria-hidden="true"><Swords size={36} /></div>
+            <div className="duelImpact" aria-hidden="true"><Swords size={32} /><span>VS</span></div>
             <article className="duelFighter defender">
               <span className="duelFighterRole">{state.defenseMode === 'cover' ? 'COVER' : 'FACE'}</span>
               <span className="duelFighterIcon"><CardArtwork card={defenseCard} className="duelCardArtwork" /></span>
@@ -128,13 +128,13 @@ export function BattleBoard({
           <div className="duelOverlayStatus">
             {duelResultVisible ? (
               <>
-                <strong>RESULT</strong>
+                <strong>對決結果</strong>
                 {duelPreview.map((line) => <p key={line}>{line}</p>)}
               </>
             ) : (
               <>
-                <strong>DUEL</strong>
-                <p>Controls locked</p>
+                <strong>對決中</strong>
+                <p>雙方牌面已鎖定</p>
               </>
             )}
           </div>
@@ -456,7 +456,7 @@ function PlayerRow({ player, state, match, online, seat, coverOptions, isBottom,
   const isYou = online ? seat === player : state.localPlayer === player;
 
   return (
-    <section className={`playerZone ${isBottom ? 'bottom' : 'top'}`} aria-label={playerName(player, match)}>
+    <section className={`playerZone player${player} ${isBottom ? 'bottom' : 'top'}`} aria-label={playerName(player, match)}>
       <div className="playerZoneHeader">
         <div className="playerIdentity">
           <span className={`playerMark player${player}`}>{player}</span>

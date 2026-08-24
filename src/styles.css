@@ -1718,3 +1718,531 @@ h2 {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Illustrated arena theme */
+
+.gameActive {
+  --arena-navy: #07172c;
+  --arena-blue: #194f8b;
+  --arena-red: #8b251f;
+  --arena-gold: #d8ad54;
+  color: #f7edd4;
+  background: var(--arena-navy);
+}
+
+.gameActive .appHeader {
+  border-bottom-color: #8f6b2b;
+  color: #fff6df;
+  background: #071426;
+  box-shadow: 0 3px 18px rgb(0 0 0 / 32%);
+}
+
+.gameActive .brandMark {
+  color: #14233a;
+  background: var(--arena-gold);
+  box-shadow: inset 0 0 0 2px #f2d995;
+}
+
+.gameActive .brandButton,
+.gameActive .accountName,
+.gameActive .guestLabel {
+  color: #fff6df;
+}
+
+.gameActive .brandButton small {
+  color: #d4ba7d;
+}
+
+.gameActive .modeSwitch {
+  border-color: #725a2e;
+  background: #0d2139;
+}
+
+.gameActive .modeSwitch button {
+  color: #c8d3df;
+}
+
+.gameActive .modeSwitch button.active {
+  color: #172239;
+  background: var(--arena-gold);
+}
+
+.gameView {
+  color: #f7edd4;
+  background: #07172c;
+}
+
+.gameView .battleStage {
+  position: relative;
+  border-right: 1px solid #8b692d;
+  background:
+    linear-gradient(180deg, rgb(116 28 22 / 30%) 0%, transparent 35%, transparent 65%, rgb(18 70 123 / 34%) 100%),
+    linear-gradient(90deg, rgb(216 173 84 / 8%) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(216 173 84 / 8%) 1px, transparent 1px),
+    #08182c;
+  background-size: auto, 36px 36px, 36px 36px, auto;
+}
+
+.gameView .battleStage::before {
+  position: absolute;
+  z-index: 0;
+  inset: 8px;
+  border: 1px solid rgb(216 173 84 / 26%);
+  pointer-events: none;
+  content: "";
+}
+
+.gameView .battleStage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.gameView .matchToolbar {
+  min-height: 50px;
+  border: 1px solid rgb(216 173 84 / 48%);
+  border-radius: 5px;
+  padding: 6px 10px;
+  background: rgb(5 16 31 / 88%);
+  box-shadow: inset 0 0 18px rgb(216 173 84 / 6%);
+}
+
+.gameView .matchIdentity > svg,
+.gameView .matchIdentity span {
+  color: var(--arena-gold);
+}
+
+.gameView .matchIdentity strong,
+.gameView .matchTools .quietButton {
+  color: #fff6df;
+}
+
+.gameView .matchTools button {
+  border-color: #745f37;
+  color: #f9efd6;
+  background: #102640;
+}
+
+.gameView .connectionBadge {
+  color: #e9dcc0;
+  background: #102640;
+}
+
+.gameView .playerZone {
+  gap: 7px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid rgb(216 173 84 / 42%);
+  border-bottom: 1px solid rgb(216 173 84 / 42%);
+}
+
+.gameView .playerZone.playerA {
+  background: linear-gradient(90deg, rgb(20 68 122 / 64%), rgb(8 24 44 / 36%) 60%, transparent);
+  box-shadow: inset 4px 0 0 #3477bf;
+}
+
+.gameView .playerZone.playerB {
+  background: linear-gradient(90deg, rgb(121 28 23 / 64%), rgb(8 24 44 / 36%) 60%, transparent);
+  box-shadow: inset 4px 0 0 #b64235;
+}
+
+.gameView .playerZoneHeader {
+  color: #fff6df;
+}
+
+.gameView .playerIdentity small,
+.gameView .presenceLabel {
+  color: #c9d2da;
+}
+
+.gameView .playerMark {
+  border: 1px solid var(--arena-gold);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
+}
+
+.gameView .battleCard {
+  border-color: #cba34e;
+  box-shadow: 0 8px 16px rgb(0 0 0 / 36%), 0 0 0 1px rgb(255 238 183 / 12%);
+}
+
+.gameView .battleCard.actionable:hover:not(:disabled) {
+  border-color: #ffe28f;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 45%), 0 0 0 3px rgb(216 173 84 / 30%);
+}
+
+.gameView .battleCard.selectedAttacker {
+  border-color: #6db5ff;
+  box-shadow: 0 0 0 3px rgb(76 153 230 / 45%), 0 10px 24px rgb(0 0 0 / 38%);
+}
+
+.gameView .battleCard.selectedTarget {
+  border-color: #ff7669;
+  box-shadow: 0 0 0 3px rgb(220 65 50 / 46%), 0 10px 24px rgb(0 0 0 / 38%);
+}
+
+.gameView .battleCard.selectedCover,
+.gameView .battleCard.coverOption {
+  border-color: #f3ce72;
+  box-shadow: 0 0 0 3px rgb(235 187 77 / 38%), 0 10px 24px rgb(0 0 0 / 38%);
+}
+
+.gameView .battleCenter {
+  min-height: 82px;
+}
+
+.gameView .duelLane {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #9f7935;
+  border-radius: 5px;
+  background: linear-gradient(105deg, rgb(25 79 139 / 88%) 0 42%, rgb(7 23 44 / 95%) 48% 52%, rgb(139 37 31 / 88%) 58% 100%);
+  box-shadow: inset 0 0 24px rgb(0 0 0 / 35%);
+}
+
+.gameView .duelLane::after {
+  position: absolute;
+  z-index: 0;
+  inset: 5px;
+  border: 1px solid rgb(240 205 119 / 25%);
+  pointer-events: none;
+  content: "";
+}
+
+.gameView .duelCardName,
+.gameView .versusMark {
+  position: relative;
+  z-index: 1;
+}
+
+.gameView .duelCardName small {
+  color: #e3d1a9;
+}
+
+.gameView .duelCardName strong {
+  color: #fff9e9;
+  text-shadow: 0 2px 4px rgb(0 0 0 / 42%);
+}
+
+.gameView .versusMark {
+  width: 58px;
+  height: 58px;
+  justify-self: center;
+  border: 1px solid #e6bd63;
+  border-radius: 50%;
+  color: #15243a;
+  background: #e2b85d;
+  box-shadow: 0 0 0 4px rgb(5 18 34 / 65%), 0 0 18px rgb(226 184 93 / 32%);
+}
+
+.gameView .centerActions button {
+  border-color: #826b3c;
+  color: #f4e8cb;
+  background: #102640;
+}
+
+.gameView .centerActions .resolveButton {
+  border-color: #f0ce7d;
+  color: #172238;
+  background: #ddb45b;
+}
+
+.gameView .commandRail {
+  border-left-color: #8b692d;
+  color: #f6ebcf;
+  background: #0a1727;
+  box-shadow: inset 12px 0 28px rgb(0 0 0 / 22%);
+}
+
+.gameView .commandRail > section {
+  border-bottom-color: #35445a;
+}
+
+.gameView .turnPanel {
+  background: linear-gradient(135deg, rgb(23 61 101 / 50%), transparent 70%);
+}
+
+.gameView .turnPanel > .sectionKicker,
+.gameView .controlLabel,
+.gameView .logHeading small {
+  color: var(--arena-gold);
+}
+
+.gameView .turnTitle p,
+.gameView .scoreItem > span,
+.gameView .scoreItem p,
+.gameView .defenseContext p,
+.gameView .attackSelection p,
+.gameView .defenseSelection p,
+.gameView .battleLog li p,
+.gameView .rematchVotes span {
+  color: #aebccc;
+}
+
+.gameView .scoreDivider {
+  background: #56647a;
+}
+
+.gameView .defenseContext,
+.gameView .attackSelection,
+.gameView .defenseSelection {
+  color: #f6ebcf;
+  background: #0f2034;
+}
+
+.gameView .contextCard {
+  border-color: #5f6e82;
+  color: #f7edd4;
+  background: #14283f;
+}
+
+.gameView .contextCard small {
+  color: #b8c5d2;
+}
+
+.gameView .battleLog li {
+  border-color: #35445a;
+}
+
+.gameView .battleLog li > span {
+  color: #75869b;
+}
+
+.gameView .battleLog li.warn p {
+  color: #e8c56f;
+}
+
+.gameView .battleLog li.error p {
+  color: #ef938a;
+}
+
+.duelOverlay {
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(105deg, rgb(7 38 74 / 90%) 0 44%, rgb(5 12 23 / 94%) 48% 52%, rgb(90 18 16 / 90%) 56% 100%);
+  backdrop-filter: blur(5px);
+}
+
+.duelArena {
+  --duel-impact-distance: clamp(96px, 26vw, 190px);
+  --duel-impact-distance-negative: clamp(-190px, -26vw, -96px);
+  --duel-rest-distance: clamp(38px, 9vw, 86px);
+  --duel-rest-distance-negative: clamp(-86px, -9vw, -38px);
+  width: min(720px, 94vw);
+  height: 350px;
+  border: 1px solid #d7ac53;
+  border-radius: 6px;
+  background:
+    linear-gradient(108deg, rgb(22 77 136 / 78%) 0 43%, transparent 48% 52%, rgb(139 35 29 / 78%) 57% 100%),
+    #081629;
+  box-shadow: inset 0 0 0 5px rgb(5 15 29 / 72%), 0 22px 60px rgb(0 0 0 / 55%);
+}
+
+.duelArena::after {
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgb(243 210 129 / 30%);
+  pointer-events: none;
+  content: "";
+}
+
+.duelFighter {
+  z-index: 2;
+  top: 24px;
+  width: 176px;
+  height: 302px;
+  padding: 7px;
+  border-color: #e0b65e;
+  color: #fff4d7;
+  background: #0e294a;
+  box-shadow: 0 14px 28px rgb(0 0 0 / 48%), inset 0 0 0 2px rgb(255 255 255 / 9%);
+}
+
+.duelFighter.defender {
+  background: #621a18;
+}
+
+.duelFighterRole {
+  color: #efd07f;
+  font-size: 0.68rem;
+  letter-spacing: .08em;
+}
+
+.duelFighterIcon {
+  width: 146px;
+  height: 219px;
+  border-color: #f0cb73;
+  box-shadow: 0 5px 14px rgb(0 0 0 / 45%);
+}
+
+.duelFighter strong {
+  color: #fff8e5;
+  font-size: .82rem;
+}
+
+.duelFighter.attacker {
+  animation-name: duel-charge-left-arena;
+}
+
+.duelFighter.defender {
+  animation-name: duel-charge-right-arena;
+}
+
+.duelImpact {
+  z-index: 4;
+  width: 82px;
+  height: 82px;
+  gap: 1px;
+  border-color: #f1d38e;
+  color: #17233a;
+  background: #e4b858;
+  box-shadow: 0 0 0 6px rgb(6 17 31 / 72%), 0 0 28px rgb(239 190 79 / 55%);
+}
+
+.duelImpact span {
+  font-size: .68rem;
+  font-weight: 950;
+}
+
+.duelOverlay.revealed .duelArena {
+  opacity: 1;
+}
+
+.duelOverlay.revealed .duelFighter {
+  border-color: #ffe09a;
+  box-shadow: 0 14px 32px rgb(0 0 0 / 52%), 0 0 0 3px rgb(230 184 88 / 28%);
+}
+
+.duelOverlayStatus {
+  width: min(520px, 94vw);
+  min-height: 78px;
+  align-content: center;
+  border-color: #d5aa50;
+  color: #fff4d8;
+  background: #0a192d;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 34%);
+}
+
+.duelOverlayStatus strong {
+  color: #f1c86d;
+  font-size: .9rem;
+}
+
+.duelOverlayStatus p {
+  color: #e9dcc0;
+}
+
+@keyframes duel-charge-left-arena {
+  0%, 18% { transform: translateX(0) rotate(-5deg); }
+  52% { transform: translateX(var(--duel-impact-distance)) rotate(0deg) scale(1.03); }
+  64% { transform: translateX(calc(var(--duel-rest-distance) - 14px)) rotate(-4deg); }
+  78%, 100% { transform: translateX(var(--duel-rest-distance)) rotate(-1deg); }
+}
+
+@keyframes duel-charge-right-arena {
+  0%, 18% { transform: translateX(0) rotate(5deg); }
+  52% { transform: translateX(var(--duel-impact-distance-negative)) rotate(0deg) scale(1.03); }
+  64% { transform: translateX(calc(var(--duel-rest-distance-negative) + 14px)) rotate(4deg); }
+  78%, 100% { transform: translateX(var(--duel-rest-distance-negative)) rotate(1deg); }
+}
+
+@media (max-width: 900px) {
+  .gameView .battleStage {
+    border-right: 0;
+  }
+
+  .gameView .commandRail {
+    border-top-color: #8b692d;
+    background: #0a1727;
+  }
+}
+
+@media (max-width: 600px) {
+  .gameView .battleStage {
+    padding: 10px;
+  }
+
+  .gameView .matchToolbar,
+  .gameView .playerZone {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .gameView .battleCenter {
+    min-height: 0;
+  }
+
+  .gameView .duelLane {
+    min-height: 68px;
+  }
+
+  .gameView .versusMark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .duelOverlay {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .duelArena {
+    --duel-impact-distance: clamp(64px, 26vw, 98px);
+    --duel-impact-distance-negative: clamp(-98px, -26vw, -64px);
+    --duel-rest-distance: clamp(24px, 8vw, 38px);
+    --duel-rest-distance-negative: clamp(-38px, -8vw, -24px);
+    width: min(94vw, 430px);
+    height: 280px;
+  }
+
+  .duelFighter {
+    top: 28px;
+    width: 120px;
+    height: 224px;
+    padding: 5px;
+  }
+
+  .duelFighterIcon {
+    width: 106px;
+    height: 159px;
+  }
+
+  .duelFighter strong {
+    font-size: .7rem;
+  }
+
+  .duelImpact {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .duelOverlay {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .duelArena {
+    --duel-impact-distance: clamp(110px, 25vw, 170px);
+    --duel-impact-distance-negative: clamp(-170px, -25vw, -110px);
+    --duel-rest-distance: clamp(48px, 9vw, 78px);
+    --duel-rest-distance-negative: clamp(-78px, -9vw, -48px);
+    width: min(700px, 94vw);
+    height: 236px;
+  }
+
+  .duelFighter {
+    top: 10px;
+    width: 132px;
+    height: 214px;
+    padding: 5px;
+  }
+
+  .duelFighterIcon {
+    width: 112px;
+    height: 168px;
+  }
+
+  .duelOverlayStatus {
+    min-height: 58px;
+    padding: 7px 12px;
+  }
+}

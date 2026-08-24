@@ -260,7 +260,7 @@ export function BattleApp() {
   }
 
   return (
-    <div className="appRoot">
+    <div className={`appRoot ${view === 'lobby' ? '' : 'gameActive'}`}>
       <header className="appHeader">
         <button className="brandButton" type="button" onClick={() => view === 'lobby' && setView('lobby')} aria-label="A牌對決">
           <span className="brandMark"><Crown size={21} /></span>

@@ -6,7 +6,7 @@ export type CardKind = 'rank' | 'explosive' | 'trap';
 export type BattlePhase = 'select-attack' | 'select-defense' | 'duel' | 'finished';
 
 export const DUEL_ANIMATION_MS = 4000;
-export const DUEL_RESULT_REVEAL_MS = 3000;
+export const DUEL_RESULT_REVEAL_MS = 5000;
 export const DUEL_DURATION_MS = DUEL_ANIMATION_MS + DUEL_RESULT_REVEAL_MS;
 
 export type BattleCard = {

@@ -76,10 +76,10 @@ describe('battle engine', () => {
     expect(restarted.winner).toBeNull();
   });
 
-  it('holds the result for three seconds after the four-second duel animation', () => {
+  it('holds the result for five seconds after the four-second duel animation', () => {
     expect(DUEL_ANIMATION_MS).toBe(4000);
-    expect(DUEL_RESULT_REVEAL_MS).toBe(3000);
-    expect(DUEL_DURATION_MS).toBe(7000);
+    expect(DUEL_RESULT_REVEAL_MS).toBe(5000);
+    expect(DUEL_DURATION_MS).toBe(9000);
   });
 
   it('starts a rematch only after both players agree', () => {
@@ -192,8 +192,8 @@ describe('battle engine', () => {
     expect(state.selectedCoverId).toBe('B-0');
     state = confirmDefense(state, 1000);
     expect(getBattlePhase(state)).toBe('duel');
-    expect(canResolve(state, 7999)).toBe(false);
-    expect(canResolve(state, 8000)).toBe(true);
+    expect(canResolve(state, 9999)).toBe(false);
+    expect(canResolve(state, 10000)).toBe(true);
   });
 
   it('locks attack selections after the attacker confirms', () => {
