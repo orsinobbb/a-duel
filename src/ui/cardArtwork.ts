@@ -1,4 +1,4 @@
-import type { BattleCard, Player } from '../engine/battle';
+import type { BattleCard, DeckCardKey, Player } from '../engine/battle';
 
 import blueDuke from '../assets/cards/player-a/rank5.webp';
 import blueMarquis from '../assets/cards/player-a/rank4.webp';
@@ -15,9 +15,7 @@ import redKnight from '../assets/cards/player-b/rank1.webp';
 import redExplosive from '../assets/cards/player-b/explosive.webp';
 import redTrap from '../assets/cards/player-b/trap.webp';
 
-type ArtworkKey = 'rank5' | 'rank4' | 'rank3' | 'rank2' | 'rank1' | 'explosive' | 'trap';
-
-const artwork: Record<Player, Record<ArtworkKey, string>> = {
+const artwork: Record<Player, Record<DeckCardKey, string>> = {
   A: {
     rank5: blueDuke,
     rank4: blueMarquis,
@@ -39,6 +37,10 @@ const artwork: Record<Player, Record<ArtworkKey, string>> = {
 };
 
 export function getCardArtworkUrl(card: BattleCard): string {
-  const key: ArtworkKey = card.kind === 'rank' ? (`rank${card.rank}` as ArtworkKey) : card.kind;
+  const key: DeckCardKey = card.kind === 'rank' ? (`rank${card.rank}` as DeckCardKey) : card.kind;
   return artwork[card.owner][key];
+}
+
+export function getDeckCardArtworkUrl(key: DeckCardKey, player: Player = 'A'): string {
+  return artwork[player][key];
 }

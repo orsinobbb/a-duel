@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BattleState,
+  DEFAULT_DECK_ORDER,
   DUEL_ANIMATION_MS,
   DUEL_DURATION_MS,
   DUEL_RESULT_REVEAL_MS,
@@ -12,12 +13,14 @@ import {
   forfeitBattle,
   getBattlePhase,
   getCoverOptions,
+  isValidDeckOrder,
   passTurn,
   resolveBattle,
   restartBattle,
   selectAttacker,
   selectDefenseCard,
   selectTarget,
+  setPlayerDeckOrder,
 } from '../battle';
 
 function prepareDuel(attackerId: string, targetId: string, defenseId = targetId): BattleState {
@@ -130,12 +133,20 @@ describe('battle engine', () => {
     expect(outcome.state.cards.find((card) => card.id === 'B-0')?.alive).toBe(false);
   });
 
-  it('makes explosive attacks ignore rank and retire after use', () => {
+  it('removes both cards when an explosive attacks', () => {
     const outcome = resolveBattle(prepareDuel('A-5', 'B-0'));
 
     expect(outcome.state.cards.find((card) => card.id === 'A-5')?.alive).toBe(false);
     expect(outcome.state.cards.find((card) => card.id === 'B-0')?.alive).toBe(false);
-    expect(outcome.lines[2]).toContain('無視階級');
+    expect(outcome.lines[2]).toContain('同歸於盡');
+  });
+
+  it('removes both cards when an explosive is attacked', () => {
+    const outcome = resolveBattle(prepareDuel('A-0', 'B-5'));
+
+    expect(outcome.state.cards.find((card) => card.id === 'A-0')?.alive).toBe(false);
+    expect(outcome.state.cards.find((card) => card.id === 'B-5')?.alive).toBe(false);
+    expect(outcome.lines[2]).toContain('同歸於盡');
   });
 
   it('prevents traps from attacking or covering', () => {
@@ -242,6 +253,34 @@ describe('battle engine', () => {
 
     expect(playerA.map((card) => card.name)).not.toEqual(['公爵', '侯爵', '伯爵', '子爵', '騎士', '炸藥', '陷阱']);
     expect(playerA.map((card) => card.id)).toEqual(['A-0', 'A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6']);
+  });
+
+  it('creates a player deck in the requested order', () => {
+    const order = ['trap', 'rank1', 'explosive', 'rank2', 'rank3', 'rank4', 'rank5'] as const;
+    const state = createInitialState('A', true, () => 0, { A: order });
+    const playerA = state.cards.filter((card) => card.owner === 'A').sort((left, right) => left.slot - right.slot);
+
+    expect(playerA.map((card) => card.name)).toEqual(['陷阱', '騎士', '炸藥', '子爵', '伯爵', '侯爵', '公爵']);
+    expect(state.deckOrders.A).toEqual(order);
+  });
+
+  it('validates and applies a complete deck order without duplicates', () => {
+    const order = [...DEFAULT_DECK_ORDER].reverse();
+    const initial = createInitialState();
+    const arranged = setPlayerDeckOrder(initial, 'B', order);
+
+    expect(isValidDeckOrder(order)).toBe(true);
+    expect(isValidDeckOrder([...order.slice(0, -1), order[0]])).toBe(false);
+    expect(arranged.deckOrders.B).toEqual(order);
+    expect(arranged.cards.filter((card) => card.owner === 'B').map((card) => card.name)).toEqual([
+      '陷阱',
+      '炸藥',
+      '騎士',
+      '子爵',
+      '伯爵',
+      '侯爵',
+      '公爵',
+    ]);
   });
 
   it('finishes the battle when a player forfeits', () => {

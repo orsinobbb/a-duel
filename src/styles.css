@@ -297,6 +297,9 @@ h2 {
 .lobbyView {
   display: grid;
   grid-template-columns: minmax(270px, 330px) minmax(0, 1fr);
+  grid-template-areas:
+    "actions deck"
+    "rooms rooms";
   gap: 42px;
   width: min(1180px, 100%);
   margin: 0 auto;
@@ -304,9 +307,98 @@ h2 {
 }
 
 .lobbyActions {
+  grid-area: actions;
   align-self: start;
   padding-right: 38px;
   border-right: 1px solid var(--line);
+}
+
+.deckEditor {
+  grid-area: deck;
+  min-width: 0;
+}
+
+.deckEditorHeader,
+.deckEditorTools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.deckEditorHeader,
+.deckEditorTools {
+  flex-wrap: wrap;
+}
+
+.deckSaveButton {
+  min-height: 40px;
+  font-weight: 850;
+}
+
+.deckOrderGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.deckOrderItem {
+  position: relative;
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid #c8c2af;
+  border-radius: 6px;
+  background: #f8f6ef;
+  box-shadow: 0 3px 9px rgb(29 43 39 / 7%);
+}
+
+.deckOrderItem img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.deckOrderItem strong {
+  display: block;
+  overflow: hidden;
+  margin: 5px 0;
+  font-size: 0.72rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deckSlotNumber {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  width: 24px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 4px;
+  color: #fff;
+  background: rgb(8 27 44 / 82%);
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.deckMoveControls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.deckMoveControls button {
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  padding: 0;
 }
 
 .sectionHeading,
@@ -392,6 +484,7 @@ h2 {
 }
 
 .roomSection {
+  grid-area: rooms;
   min-width: 0;
 }
 
@@ -1472,6 +1565,10 @@ h2 {
 @media (max-width: 900px) {
   .lobbyView {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "actions"
+      "deck"
+      "rooms";
     gap: 34px;
   }
 
@@ -1544,6 +1641,36 @@ h2 {
 
   .lobbyView {
     padding: 32px 16px 48px;
+  }
+
+  .deckOrderGrid {
+    gap: 3px;
+    margin-top: 18px;
+  }
+
+  .deckOrderItem {
+    padding: 2px;
+  }
+
+  .deckOrderItem strong {
+    margin: 3px 0;
+    font-size: 0.6rem;
+  }
+
+  .deckSlotNumber {
+    top: 4px;
+    left: 4px;
+    width: 20px;
+    height: 18px;
+    font-size: 0.5rem;
+  }
+
+  .deckMoveControls {
+    gap: 2px;
+  }
+
+  .deckMoveControls button {
+    min-height: 25px;
   }
 
   h1 {
@@ -1851,6 +1978,160 @@ h2 {
 .gameActive .modeSwitch button.active {
   color: #172239;
   background: var(--arena-gold);
+}
+
+.gameActive .lobbyView {
+  color: #f7edd4;
+  background:
+    linear-gradient(90deg, rgb(216 173 84 / 7%) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(216 173 84 / 7%) 1px, transparent 1px),
+    linear-gradient(180deg, #0a1d34 0%, #07172c 100%);
+  background-size: 40px 40px, 40px 40px, auto;
+}
+
+.gameActive .lobbyActions {
+  border-right-color: rgb(216 173 84 / 35%);
+}
+
+.gameActive .lobbyView h1,
+.gameActive .lobbyView h2 {
+  color: #fff6df;
+}
+
+.gameActive .lobbyView .sectionKicker,
+.gameActive .lobbyView .roomCount {
+  color: var(--arena-gold);
+}
+
+.gameActive .lobbyView label,
+.gameActive .lobbyView .authLoading,
+.gameActive .lobbyView .updatedCell,
+.gameActive .lobbyView .emptyRooms {
+  color: #c9d2da;
+}
+
+.gameActive .lobbyView input {
+  border-color: #745f37;
+  color: #fff6df;
+  background: #102640;
+}
+
+.gameActive .lobbyView input::placeholder {
+  color: #8998a7;
+}
+
+.gameActive .lobbyView input:focus-visible {
+  outline-color: rgb(216 173 84 / 34%);
+}
+
+.gameActive .lobbyView .fieldWithIcon svg {
+  color: #d4ba7d;
+}
+
+.gameActive .lobbyView .primaryButton,
+.gameActive .lobbyView .deckSaveButton {
+  border-color: #f0cf7a;
+  color: #172239;
+  background: var(--arena-gold);
+  box-shadow: inset 0 0 0 1px rgb(255 248 218 / 28%);
+}
+
+.gameActive .lobbyView .primaryButton:hover:not(:disabled),
+.gameActive .lobbyView .deckSaveButton:hover:not(:disabled) {
+  border-color: #ffe6a3;
+  background: #e8c36f;
+}
+
+.gameActive .lobbyView .iconButton,
+.gameActive .lobbyView .deckMoveControls button,
+.gameActive .lobbyView .joinControls button,
+.gameActive .lobbyView .joinRoomButton {
+  border-color: #745f37;
+  color: #f9efd6;
+  background: #102640;
+}
+
+.gameActive .lobbyView .iconButton:hover:not(:disabled),
+.gameActive .lobbyView .deckMoveControls button:hover:not(:disabled),
+.gameActive .lobbyView .joinControls button:hover:not(:disabled),
+.gameActive .lobbyView .joinRoomButton:hover:not(:disabled) {
+  border-color: #d8ad54;
+  background: #173453;
+}
+
+.gameActive .lobbyView .deckEditor {
+  padding-left: 20px;
+  border-left: 3px solid var(--arena-blue);
+}
+
+.gameActive .lobbyView .deckOrderGrid {
+  padding-top: 12px;
+  border-top: 1px solid rgb(216 173 84 / 34%);
+}
+
+.gameActive .lobbyView .deckOrderItem {
+  border-color: #cba34e;
+  background: #0c2038;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 28%), inset 0 0 0 1px rgb(255 238 183 / 8%);
+}
+
+.gameActive .lobbyView .deckOrderItem:nth-child(n + 6) {
+  border-color: #a84438;
+  background: #251a25;
+}
+
+.gameActive .lobbyView .deckOrderItem img {
+  border: 1px solid rgb(255 239 194 / 24%);
+}
+
+.gameActive .lobbyView .deckSlotNumber {
+  border-color: #d8ad54;
+  color: #fff4cf;
+  background: rgb(5 16 31 / 88%);
+}
+
+.gameActive .lobbyView .deckSaveButton.saved:disabled {
+  border-color: #477b68;
+  color: #bcebd7;
+  background: #174537;
+  opacity: 1;
+}
+
+.gameActive .lobbyView .joinBlock,
+.gameActive .lobbyView .roomTable,
+.gameActive .lobbyView .roomRow,
+.gameActive .lobbyView .emptyRooms {
+  border-color: rgb(216 173 84 / 30%);
+}
+
+.gameActive .lobbyView .roomSection {
+  padding-top: 24px;
+  border-top: 1px solid #8b692d;
+  box-shadow: inset 0 3px 0 rgb(139 37 31 / 36%);
+}
+
+.gameActive .lobbyView .roomRow {
+  background: rgb(9 28 49 / 72%);
+}
+
+.gameActive .lobbyView .matchCode,
+.gameActive .lobbyView .playerCell {
+  color: #fff6df;
+}
+
+.gameActive .lobbyView .statusPill.waiting {
+  color: #fff0bd;
+  background: #6d501d;
+}
+
+.gameActive .lobbyView .statusPill.playing {
+  color: #d7f8e9;
+  background: #176047;
+}
+
+.gameActive .lobbyView .statusPill.finished {
+  color: #e7dfe0;
+  background: #51323a;
 }
 
 .gameView {

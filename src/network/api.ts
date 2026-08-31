@@ -1,3 +1,4 @@
+import type { DeckCardKey } from '../engine/battle';
 import type { MatchSummary, PlayerSeat, UserSession } from './types';
 
 const configuredApiBase = import.meta.env.VITE_A_DUEL_API_BASE?.trim().replace(/\/$/, '');
@@ -34,15 +35,20 @@ export async function listMatches(): Promise<MatchSummary[]> {
   return response.matches;
 }
 
-export async function createMatch(token: string): Promise<{ match: MatchSummary; seat: PlayerSeat }> {
-  return request('/matches', { method: 'POST', token });
+export async function createMatch(token: string, deckOrder: readonly DeckCardKey[]): Promise<{ match: MatchSummary; seat: PlayerSeat }> {
+  return request('/matches', { method: 'POST', token, body: JSON.stringify({ deckOrder }) });
 }
 
 export async function joinMatch(
   token: string,
   matchId: string,
+  deckOrder: readonly DeckCardKey[],
 ): Promise<{ match: MatchSummary; seat: PlayerSeat | 'spectator' }> {
-  return request(`/matches/${encodeURIComponent(matchId)}/join`, { method: 'POST', token });
+  return request(`/matches/${encodeURIComponent(matchId)}/join`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ deckOrder }),
+  });
 }
 
 export async function leaveMatch(token: string, matchId: string): Promise<void> {

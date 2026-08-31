@@ -4,6 +4,7 @@ export type DefenseMode = 'none' | 'face' | 'cover';
 export type MessageKind = 'info' | 'warn' | 'error';
 export type CardKind = 'rank' | 'explosive' | 'trap';
 export type BattlePhase = 'select-attack' | 'select-defense' | 'duel' | 'finished';
+export type DeckCardKey = 'rank5' | 'rank4' | 'rank3' | 'rank2' | 'rank1' | 'explosive' | 'trap';
 
 export const DUEL_ANIMATION_MS = 4000;
 export const DUEL_RESULT_REVEAL_MS = 5000;
@@ -27,6 +28,7 @@ export type BattleMessage = {
 
 export type BattleState = {
   cards: BattleCard[];
+  deckOrders: Record<Player, DeckCardKey[]>;
   currentTurn: Player;
   localPlayer: Player;
   selectedAttackerId: string | null;
@@ -47,29 +49,48 @@ export type ResolveOutcome = {
   lines: string[];
 };
 
-const roster: Array<Omit<BattleCard, 'id' | 'owner' | 'slot' | 'alive' | 'revealed'>> = [
-  { name: '公爵', kind: 'rank', rank: 5 },
-  { name: '侯爵', kind: 'rank', rank: 4 },
-  { name: '伯爵', kind: 'rank', rank: 3 },
-  { name: '子爵', kind: 'rank', rank: 2 },
-  { name: '騎士', kind: 'rank', rank: 1 },
-  { name: '炸藥', kind: 'explosive', rank: null },
-  { name: '陷阱', kind: 'trap', rank: null },
+type CardDefinition = Omit<BattleCard, 'id' | 'owner' | 'slot' | 'alive' | 'revealed'>;
+type DeckOrders = Partial<Record<Player, readonly DeckCardKey[]>>;
+
+export const DEFAULT_DECK_ORDER: readonly DeckCardKey[] = [
+  'rank5',
+  'rank4',
+  'rank3',
+  'rank2',
+  'rank1',
+  'explosive',
+  'trap',
 ];
+
+const deckCards: Record<DeckCardKey, CardDefinition> = {
+  rank5: { name: '公爵', kind: 'rank', rank: 5 },
+  rank4: { name: '侯爵', kind: 'rank', rank: 4 },
+  rank3: { name: '伯爵', kind: 'rank', rank: 3 },
+  rank2: { name: '子爵', kind: 'rank', rank: 2 },
+  rank1: { name: '騎士', kind: 'rank', rank: 1 },
+  explosive: { name: '炸藥', kind: 'explosive', rank: null },
+  trap: { name: '陷阱', kind: 'trap', rank: null },
+};
 
 export function otherPlayer(player: Player): Player {
   return player === 'A' ? 'B' : 'A';
 }
 
-export function createInitialState(localPlayer: Player = 'A', shuffle = false, random: () => number = Math.random): BattleState {
-  const rosterA = shuffle ? shuffleRoster(roster, random) : roster;
-  const rosterB = shuffle ? shuffleRoster(roster, random) : roster;
+export function createInitialState(
+  localPlayer: Player = 'A',
+  shuffle = false,
+  random: () => number = Math.random,
+  requestedDeckOrders: DeckOrders = {},
+): BattleState {
+  const deckOrderA = resolveDeckOrder(requestedDeckOrders.A, shuffle, random);
+  const deckOrderB = resolveDeckOrder(requestedDeckOrders.B, shuffle, random);
 
   return {
     cards: [
-      ...rosterA.map((card, index) => makeCard('A', index, card)),
-      ...rosterB.map((card, index) => makeCard('B', index, card)),
+      ...deckOrderA.map((key, index) => makeCard('A', index, deckCards[key])),
+      ...deckOrderB.map((key, index) => makeCard('B', index, deckCards[key])),
     ],
+    deckOrders: { A: deckOrderA, B: deckOrderB },
     currentTurn: 'A',
     localPlayer,
     selectedAttackerId: null,
@@ -83,6 +104,37 @@ export function createInitialState(localPlayer: Player = 'A', shuffle = false, r
     gameStatus: 'playing',
     winner: null,
     rematchReady: { A: false, B: false },
+  };
+}
+
+export function getDeckCardDefinition(key: DeckCardKey): CardDefinition {
+  return deckCards[key];
+}
+
+export function isValidDeckOrder(value: unknown): value is DeckCardKey[] {
+  if (!Array.isArray(value) || value.length !== DEFAULT_DECK_ORDER.length) return false;
+  const validKeys = new Set<string>(DEFAULT_DECK_ORDER);
+  return value.every((key): key is DeckCardKey => typeof key === 'string' && validKeys.has(key))
+    && new Set(value).size === DEFAULT_DECK_ORDER.length;
+}
+
+export function setPlayerDeckOrder(state: BattleState, player: Player, order: readonly DeckCardKey[]): BattleState {
+  if (!isValidDeckOrder(order)) return state;
+
+  const nextOrder = [...order];
+  const cards = (['A', 'B'] as const).flatMap((owner) => {
+    if (owner === player) return nextOrder.map((key, index) => makeCard(owner, index, deckCards[key]));
+    return state.cards.filter((card) => card.owner === owner).sort((left, right) => left.slot - right.slot);
+  });
+
+  return {
+    ...state,
+    cards,
+    deckOrders: {
+      A: state.deckOrders?.A ?? deckOrderFromCards(state.cards, 'A'),
+      B: state.deckOrders?.B ?? deckOrderFromCards(state.cards, 'B'),
+      [player]: nextOrder,
+    },
   };
 }
 
@@ -305,8 +357,12 @@ export function resolveBattle(state: BattleState): ResolveOutcome {
 }
 
 export function restartBattle(state: BattleState, shuffle = false): BattleState {
+  const deckOrders = state.deckOrders ?? {
+    A: deckOrderFromCards(state.cards, 'A'),
+    B: deckOrderFromCards(state.cards, 'B'),
+  };
   return {
-    ...createInitialState(state.localPlayer, shuffle),
+    ...createInitialState(state.localPlayer, shuffle, Math.random, shuffle ? {} : deckOrders),
     messages: [{ kind: 'info', text: '重新開始一局，Player A 選擇攻擊牌' }],
   };
 }
@@ -418,7 +474,7 @@ export function labelPlayer(player: Player): string {
 
 export function getCardLabel(card: BattleCard): string {
   if (card.kind === 'rank') return `階級 ${card.rank}`;
-  if (card.kind === 'explosive') return '特殊：攻擊後退場';
+  if (card.kind === 'explosive') return '特殊：交戰時同歸於盡';
   return '特殊：被攻擊時觸發';
 }
 
@@ -446,12 +502,37 @@ function shuffleRoster<T>(items: readonly T[], random: () => number): T[] {
   return shuffled;
 }
 
+function resolveDeckOrder(order: readonly DeckCardKey[] | undefined, shuffle: boolean, random: () => number): DeckCardKey[] {
+  if (isValidDeckOrder(order)) return [...order];
+  return shuffle ? shuffleRoster(DEFAULT_DECK_ORDER, random) : [...DEFAULT_DECK_ORDER];
+}
+
+function deckOrderFromCards(cards: BattleCard[], player: Player): DeckCardKey[] {
+  const order = cards
+    .filter((card) => card.owner === player)
+    .sort((left, right) => left.slot - right.slot)
+    .map(cardToDeckKey);
+  return isValidDeckOrder(order) ? order : [...DEFAULT_DECK_ORDER];
+}
+
+function cardToDeckKey(card: BattleCard): DeckCardKey {
+  if (card.kind === 'rank') return `rank${card.rank}` as DeckCardKey;
+  return card.kind;
+}
+
 function findCard(state: BattleState, cardId: string | null): BattleCard | undefined {
   if (!cardId) return undefined;
   return state.cards.find((card) => card.id === cardId);
 }
 
 function resolveClash(attacker: BattleCard, defender: BattleCard): { deadIds: string[]; text: string } {
+  if (attacker.kind === 'explosive' || defender.kind === 'explosive') {
+    return {
+      deadIds: [attacker.id, defender.id],
+      text: `${attacker.name} 與 ${defender.name} 同歸於盡，雙方退場`,
+    };
+  }
+
   if (defender.kind === 'trap') {
     return {
       deadIds: [attacker.id, defender.id],
@@ -461,17 +542,6 @@ function resolveClash(attacker: BattleCard, defender: BattleCard): { deadIds: st
 
   if (attacker.kind === 'trap') {
     return { deadIds: [attacker.id], text: `${attacker.name} 不能主動攻擊並退場` };
-  }
-
-  if (attacker.kind === 'explosive') {
-    return {
-      deadIds: [attacker.id, defender.id],
-      text: `${attacker.name} 引爆，無視階級擊破 ${defender.name}，使用後退場`,
-    };
-  }
-
-  if (defender.kind === 'explosive') {
-    return { deadIds: [defender.id], text: `${defender.name} 被擊破` };
   }
 
   if (beats(attacker, defender)) {

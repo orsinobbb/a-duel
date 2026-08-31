@@ -9,9 +9,12 @@ import {
   createInitialState,
   forfeitBattle,
   getBattlePhase,
+  isValidDeckOrder,
   resolveBattle,
+  setPlayerDeckOrder,
   type BattleCard,
   type BattleState,
+  type DeckCardKey,
 } from '../src/engine/battle';
 import type {
   ClientMessage,
@@ -224,8 +227,10 @@ async function routeApi(req: http.IncomingMessage, res: http.ServerResponse, pat
 
   if (req.method === 'POST' && pathname === '/api/matches') {
     const user = requireSession(req);
+    const body = await readJson<{ deckOrder?: unknown }>(req);
+    const deckOrder = parseDeckOrder(body.deckOrder);
     removeUserFromWaitingMatches(user.userId);
-    const match = createMatch(user);
+    const match = createMatch(user, deckOrder);
     matches.set(match.id, match);
     persist();
     sendJson(res, 201, { match: toMatchSummary(match), seat: 'A' satisfies PlayerSeat });
@@ -235,10 +240,12 @@ async function routeApi(req: http.IncomingMessage, res: http.ServerResponse, pat
   const joinRoute = pathname.match(/^\/api\/matches\/([A-Z0-9]{6})\/join$/i);
   if (req.method === 'POST' && joinRoute) {
     const user = requireSession(req);
+    const body = await readJson<{ deckOrder?: unknown }>(req);
+    const deckOrder = parseDeckOrder(body.deckOrder);
     const match = matches.get(joinRoute[1].toUpperCase());
     if (!match) throw new HttpError(404, 'match_not_found');
 
-    const seat = joinOrWatch(match, user);
+    const seat = joinOrWatch(match, user, deckOrder);
     match.updatedAt = Date.now();
     persist();
     broadcastMatch(match);
@@ -353,10 +360,10 @@ function scheduleResolution(match: MatchRoom) {
   resolutionTimers.set(match.id, timer);
 }
 
-function createMatch(user: UserSession): MatchRoom {
+function createMatch(user: UserSession, deckOrder?: readonly DeckCardKey[]): MatchRoom {
   return {
     id: makeMatchId(),
-    state: createInitialState('A', true),
+    state: createInitialState('A', true, Math.random, deckOrder ? { A: deckOrder } : {}),
     players: { A: publicUser(user), B: null },
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -364,17 +371,19 @@ function createMatch(user: UserSession): MatchRoom {
   };
 }
 
-function joinOrWatch(match: MatchRoom, user: UserSession): PlayerSeat | 'spectator' {
+function joinOrWatch(match: MatchRoom, user: UserSession, deckOrder?: readonly DeckCardKey[]): PlayerSeat | 'spectator' {
   const existing = getSeat(match, user.userId);
   if (existing) return existing;
   if (getMatchLifecycle(match) !== 'waiting') return 'spectator';
 
   if (!match.players.A) {
     match.players.A = publicUser(user);
+    if (deckOrder) match.state = setPlayerDeckOrder(match.state, 'A', deckOrder);
     return 'A';
   }
   if (!match.players.B) {
     match.players.B = publicUser(user);
+    if (deckOrder) match.state = setPlayerDeckOrder(match.state, 'B', deckOrder);
     return 'B';
   }
   return 'spectator';
@@ -536,6 +545,12 @@ function normalizePlayerName(value: unknown): string {
   if (typeof value !== 'string') return '';
   const name = value.normalize('NFKC').replace(/\s+/g, ' ').trim().slice(0, 20);
   return /[\u0000-\u001f\u007f]/.test(name) ? '' : name;
+}
+
+function parseDeckOrder(value: unknown): DeckCardKey[] | undefined {
+  if (value === undefined) return undefined;
+  if (!isValidDeckOrder(value)) throw new HttpError(400, 'invalid_deck_order');
+  return [...value];
 }
 
 async function readJson<T>(req: http.IncomingMessage): Promise<T> {

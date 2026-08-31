@@ -1,6 +1,23 @@
 import { FormEvent } from 'react';
-import { ArrowRight, Clock3, DoorOpen, LogIn, Plus, RefreshCw, Swords, UserRound } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  DoorOpen,
+  LogIn,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Save,
+  Shuffle,
+  Swords,
+  UserRound,
+} from 'lucide-react';
+import { DEFAULT_DECK_ORDER, getDeckCardDefinition, type DeckCardKey } from '../engine/battle';
 import type { MatchSummary, UserSession } from '../network/types';
+import { getDeckCardArtworkUrl } from './cardArtwork';
 
 type LobbyProps = {
   user: UserSession | null;
@@ -9,12 +26,16 @@ type LobbyProps = {
   matches: MatchSummary[];
   busy: boolean;
   authReady: boolean;
+  deckOrder: DeckCardKey[];
+  deckOrderSaved: boolean;
   onPlayerNameChange(value: string): void;
   onJoinCodeChange(value: string): void;
   onLogin(event: FormEvent): void;
   onCreateMatch(): void;
   onJoinMatch(matchId?: string): void;
   onRefresh(): void;
+  onDeckOrderChange(order: DeckCardKey[]): void;
+  onDeckOrderSave(): void;
 };
 
 export function Lobby({
@@ -24,12 +45,16 @@ export function Lobby({
   matches,
   busy,
   authReady,
+  deckOrder,
+  deckOrderSaved,
   onPlayerNameChange,
   onJoinCodeChange,
   onLogin,
   onCreateMatch,
   onJoinMatch,
   onRefresh,
+  onDeckOrderChange,
+  onDeckOrderSave,
 }: LobbyProps) {
   return (
     <main className="lobbyView">
@@ -91,6 +116,78 @@ export function Lobby({
             </div>
           </div>
         )}
+      </section>
+
+      <section className="deckEditor" aria-label="牌組排序">
+        <div className="deckEditorHeader">
+          <div>
+            <span className="sectionKicker">DECK ORDER</span>
+            <h2>牌組排序</h2>
+          </div>
+          <div className="deckEditorTools">
+            <button
+              className="iconButton"
+              type="button"
+              onClick={() => onDeckOrderChange(shuffleDeck(deckOrder))}
+              title="隨機排列"
+              aria-label="隨機排列牌組"
+            >
+              <Shuffle size={18} />
+            </button>
+            <button
+              className="iconButton"
+              type="button"
+              onClick={() => onDeckOrderChange([...DEFAULT_DECK_ORDER])}
+              title="恢復預設牌序"
+              aria-label="恢復預設牌序"
+            >
+              <RotateCcw size={18} />
+            </button>
+            <button
+              className={`deckSaveButton ${deckOrderSaved ? 'saved' : 'dirty'}`}
+              type="button"
+              onClick={onDeckOrderSave}
+              disabled={deckOrderSaved}
+              aria-live="polite"
+            >
+              {deckOrderSaved ? <CheckCircle2 size={17} /> : <Save size={17} />}
+              {deckOrderSaved ? '已儲存' : '儲存牌組'}
+            </button>
+          </div>
+        </div>
+
+        <div className="deckOrderGrid">
+          {deckOrder.map((key, index) => {
+            const card = getDeckCardDefinition(key);
+            return (
+              <article className="deckOrderItem" key={key}>
+                <span className="deckSlotNumber">{String(index + 1).padStart(2, '0')}</span>
+                <img src={getDeckCardArtworkUrl(key)} alt={card.name} />
+                <strong>{card.name}</strong>
+                <div className="deckMoveControls">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() => onDeckOrderChange(moveDeckCard(deckOrder, index, -1))}
+                    title={`${card.name}向左移動`}
+                    aria-label={`${card.name}向左移動`}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={index === deckOrder.length - 1}
+                    onClick={() => onDeckOrderChange(moveDeckCard(deckOrder, index, 1))}
+                    title={`${card.name}向右移動`}
+                    aria-label={`${card.name}向右移動`}
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       <section className="roomSection" aria-label="公開對局">
@@ -159,6 +256,23 @@ function PlayerCell({ name, online }: { name?: string; online: boolean }) {
 
 function normalizeCode(value: string): string {
   return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+}
+
+function moveDeckCard(order: readonly DeckCardKey[], index: number, direction: -1 | 1): DeckCardKey[] {
+  const destination = index + direction;
+  if (destination < 0 || destination >= order.length) return [...order];
+  const next = [...order];
+  [next[index], next[destination]] = [next[destination], next[index]];
+  return next;
+}
+
+function shuffleDeck(order: readonly DeckCardKey[]): DeckCardKey[] {
+  const next = [...order];
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+  }
+  return next;
 }
 
 function formatRelativeTime(timestamp: number): string {

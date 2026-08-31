@@ -23,7 +23,7 @@ export function applyAuthorizedAction(state: BattleState, action: BattleAction, 
 
   if (action.type === 'restart') {
     if (phase !== 'finished') return { ok: false, error: 'game_in_progress' };
-    return { ok: true, state: confirmRematch(state, seat, true) };
+    return { ok: true, state: confirmRematch(state, seat) };
   }
 
   if (phase === 'finished') return { ok: false, error: 'game_finished' };
@@ -94,6 +94,6 @@ function applyBattleAction(state: BattleState, action: BattleAction): BattleStat
     case 'pass':
       return passTurn(state);
     case 'restart':
-      return confirmRematch(state, state.localPlayer, true);
+      return confirmRematch(state, state.localPlayer);
   }
 }

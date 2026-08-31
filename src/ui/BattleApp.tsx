@@ -2,10 +2,13 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Crown, Gamepad2, LogOut, Radio, UserRound } from 'lucide-react';
 import {
   BattleState,
+  DEFAULT_DECK_ORDER,
+  type DeckCardKey,
   confirmRematch,
   confirmAttack,
   confirmDefense,
   createInitialState,
+  isValidDeckOrder,
   passTurn,
   resolveBattle,
   selectDefenseCard,
@@ -23,6 +26,7 @@ import { Lobby } from './Lobby';
 type AppView = 'lobby' | 'local' | 'match';
 type NoticeTone = 'info' | 'success' | 'warn' | 'error';
 type Notice = { text: string; tone: NoticeTone } | null;
+const DECK_ORDER_STORAGE_KEY = 'a-duel:deck-order';
 
 export function BattleApp() {
   const [view, setView] = useState<AppView>('lobby');
@@ -34,6 +38,8 @@ export function BattleApp() {
   const [activeMatch, setActiveMatch] = useState<MatchSummary | null>(null);
   const [seat, setSeat] = useState<PlayerSeat | 'spectator' | null>(null);
   const [joinCode, setJoinCode] = useState(() => matchCodeFromUrl());
+  const [deckOrder, setDeckOrder] = useState<DeckCardKey[]>(loadDeckOrder);
+  const [savedDeckOrder, setSavedDeckOrder] = useState<DeckCardKey[]>(loadDeckOrder);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('offline');
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
@@ -135,7 +141,7 @@ export function BattleApp() {
     if (!user) return showNotice('請先登入', 'warn');
     setBusy(true);
     try {
-      const result = await createMatch(user.token);
+      const result = await createMatch(user.token, deckOrder);
       enterOnlineMatch(user, result.match, result.seat);
       showNotice(`對局 ${result.match.id} 已建立`, 'success');
     } catch (error) {
@@ -152,7 +158,7 @@ export function BattleApp() {
 
     setBusy(true);
     try {
-      const result = await joinMatch(user.token, normalized);
+      const result = await joinMatch(user.token, normalized, deckOrder);
       enterOnlineMatch(user, result.match, result.seat);
       showNotice(result.seat === 'spectator' ? '已進入觀戰' : `已加入 Player ${result.seat}`, 'success');
     } catch (error) {
@@ -166,7 +172,8 @@ export function BattleApp() {
     connectionRef.current?.close();
     setActiveMatch(match);
     setSeat(nextSeat);
-    setState(createInitialState(nextSeat === 'B' ? 'B' : 'A', true));
+    const localPlayer = nextSeat === 'B' ? 'B' : 'A';
+    setState(createInitialState(localPlayer, true, Math.random, { [localPlayer]: deckOrder }));
     setView('match');
     setJoinCode(match.id);
     updateMatchUrl(match.id);
@@ -234,9 +241,24 @@ export function BattleApp() {
     setActiveMatch(null);
     setSeat(null);
     setConnectionStatus('offline');
-    setState(createInitialState('A', true));
+    setState(createInitialState('A', false, Math.random, { A: deckOrder, B: deckOrder }));
     setView('local');
     updateMatchUrl(null);
+  }
+
+  function updateDeckOrder(nextOrder: DeckCardKey[]) {
+    if (!isValidDeckOrder(nextOrder)) return;
+    setDeckOrder(nextOrder);
+  }
+
+  function saveDeckOrder() {
+    try {
+      window.localStorage.setItem(DECK_ORDER_STORAGE_KEY, JSON.stringify(deckOrder));
+      setSavedDeckOrder([...deckOrder]);
+      showNotice('牌組順序已儲存', 'success');
+    } catch {
+      showNotice('瀏覽器無法儲存牌組，請檢查隱私權設定', 'error');
+    }
   }
 
   function dispatchBattleAction(action: BattleAction) {
@@ -260,7 +282,7 @@ export function BattleApp() {
   }
 
   return (
-    <div className={`appRoot ${view === 'lobby' ? '' : 'gameActive'}`}>
+    <div className="appRoot gameActive">
       <header className="appHeader">
         <button className="brandButton" type="button" onClick={() => view === 'lobby' && setView('lobby')} aria-label="A牌對決">
           <span className="brandMark"><Crown size={21} /></span>
@@ -298,12 +320,16 @@ export function BattleApp() {
           matches={matches}
           busy={busy}
           authReady={authReady}
+          deckOrder={deckOrder}
+          deckOrderSaved={sameDeckOrder(deckOrder, savedDeckOrder)}
           onPlayerNameChange={setPlayerName}
           onJoinCodeChange={setJoinCode}
           onLogin={onLogin}
           onCreateMatch={onCreateMatch}
           onJoinMatch={onJoinMatch}
           onRefresh={() => void refreshMatches()}
+          onDeckOrderChange={updateDeckOrder}
+          onDeckOrderSave={saveDeckOrder}
         />
       ) : (
         <BattleBoard
@@ -339,8 +365,22 @@ function applyLocalAction(state: BattleState, action: BattleAction): BattleState
     case 'pass':
       return passTurn(state);
     case 'restart':
-      return confirmRematch(state, state.localPlayer, true);
+      return confirmRematch(state, state.localPlayer);
   }
+}
+
+function loadDeckOrder(): DeckCardKey[] {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(DECK_ORDER_STORAGE_KEY) ?? 'null');
+    if (isValidDeckOrder(stored)) return stored;
+  } catch {
+    // Fall back to the balanced default order when local storage is unavailable or invalid.
+  }
+  return [...DEFAULT_DECK_ORDER];
+}
+
+function sameDeckOrder(left: readonly DeckCardKey[], right: readonly DeckCardKey[]): boolean {
+  return left.length === right.length && left.every((key, index) => key === right[index]);
 }
 
 function matchCodeFromUrl(): string {
@@ -361,6 +401,7 @@ function apiErrorText(error: unknown): string {
     unauthorized: '登入已過期，請重新登入',
     match_not_found: '找不到這個對局',
     not_a_player: '你不是此對局的玩家',
+    invalid_deck_order: '牌組順序無效，請重新排列',
     rate_limited: '操作太頻繁，請稍候',
     app_not_built: '前端尚未完成建置',
   };
