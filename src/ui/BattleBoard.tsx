@@ -371,15 +371,25 @@ function BattleActions({
   return (
     <section className="battleActions centerActions" aria-label="戰鬥操作">
       {phase === 'select-attack' && (
-        <button
-          className="resolveButton"
-          type="button"
-          onClick={() => onAction({ type: 'confirmAttack' })}
-          disabled={!state.selectedAttackerId || !state.selectedTargetId || !canAttack}
-        >
-          <Swords size={19} />
-          確認攻擊
-        </button>
+        <>
+          <button
+            className="resolveButton"
+            type="button"
+            onClick={() => onAction({ type: 'confirmAttack' })}
+            disabled={!state.selectedAttackerId || !state.selectedTargetId || !canAttack}
+          >
+            <Swords size={19} />
+            確認攻擊
+          </button>
+          <button
+            type="button"
+            onClick={() => onAction({ type: 'pass' })}
+            disabled={!canAttack}
+          >
+            <SkipForward size={18} />
+            略過回合
+          </button>
+        </>
       )}
       {phase === 'select-defense' && (
         <button
@@ -392,22 +402,17 @@ function BattleActions({
           確認防守
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => onAction({ type: 'pass' })}
-        disabled={phase !== 'select-attack' || !canAttack}
-      >
-        <SkipForward size={18} />
-        略過
-      </button>
-      <button
-        type="button"
-        onClick={() => onAction({ type: 'restart' })}
-        disabled={phase !== 'finished' || !rematchPlayer || isRematchReady(state, rematchPlayer) || connectionStatus === 'reconnecting'}
-      >
-        <RotateCcw size={18} />
-        {rematchPlayer && isRematchReady(state, rematchPlayer) ? '已同意，等待對手' : '同意再一局'}
-      </button>
+      {phase === 'finished' && (
+        <button
+          className="resolveButton"
+          type="button"
+          onClick={() => onAction({ type: 'restart' })}
+          disabled={!rematchPlayer || isRematchReady(state, rematchPlayer) || connectionStatus === 'reconnecting'}
+        >
+          <RotateCcw size={18} />
+          {rematchPlayer && isRematchReady(state, rematchPlayer) ? '已同意，等待對手' : '同意再一局'}
+        </button>
+      )}
     </section>
   );
 }
