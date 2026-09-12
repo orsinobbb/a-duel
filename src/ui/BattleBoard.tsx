@@ -171,6 +171,12 @@ export function BattleBoard({
           </div>
         </div>
 
+        <PhaseGuide
+          phase={phase}
+          title={phaseTitle(state, match, seat)}
+          prompt={phasePrompt(state, match, seat)}
+        />
+
         <PlayerRow
           player={topPlayer}
           state={state}
@@ -238,17 +244,6 @@ export function BattleBoard({
       </section>
 
       <aside className="commandRail" aria-label="裁判控制台">
-        <section className="turnPanel">
-          <span className="sectionKicker">CURRENT PHASE</span>
-          <div className="turnTitle">
-            <span className={`turnEmblem player${state.currentTurn}`}>{state.currentTurn}</span>
-            <div>
-              <strong>{phaseTitle(state, match, seat)}</strong>
-              <p>{phasePrompt(state, match, seat)}</p>
-            </div>
-          </div>
-        </section>
-
         <section className="scorePanel" aria-label="存活牌數">
           <Score player="A" state={state} match={match} />
           <div className="scoreDivider" />
@@ -297,69 +292,6 @@ export function BattleBoard({
           </section>
         )}
 
-        <section className={`controlSection attackSelection ${phase === 'select-attack' && canAttack ? 'active' : ''}`}>
-          <span className="controlLabel">攻擊牌與目標</span>
-          <p>
-            {phase === 'select-attack'
-              ? '可重選攻擊牌與目標，確認後才交給防守方。'
-              : '攻方選擇已鎖定'}
-          </p>
-        </section>
-
-        <section className={`controlSection defenseSelection ${canDefend ? 'active' : ''}`}>
-          <span className="controlLabel">防守牌選擇</span>
-          <p>
-            {phase === 'select-defense'
-              ? '可重選被攻擊牌或可協防的鄰牌，確認後才開始對決。'
-              : state.defenseMode === 'face'
-                ? '已選擇直面'
-                : state.defenseMode === 'cover'
-                  ? '已選擇協防牌'
-                  : '等待防守方選牌'}
-          </p>
-        </section>
-
-        <section className="battleActions railActions">
-          {phase === 'select-attack' && (
-            <button
-              className="resolveButton"
-              type="button"
-              onClick={() => onAction({ type: 'confirmAttack' })}
-              disabled={!state.selectedAttackerId || !state.selectedTargetId || !canAttack}
-            >
-              <Swords size={19} />
-              確認攻擊
-            </button>
-          )}
-          {phase === 'select-defense' && (
-            <button
-              className="resolveButton"
-              type="button"
-              onClick={() => onAction({ type: 'confirmDefense' })}
-              disabled={state.defenseMode === 'none' || !canDefend}
-            >
-              <ShieldCheck size={19} />
-              確認防守
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => onAction({ type: 'pass' })}
-            disabled={phase !== 'select-attack' || !canAttack}
-          >
-            <SkipForward size={18} />
-            Pass
-          </button>
-          <button
-            type="button"
-            onClick={() => onAction({ type: 'restart' })}
-            disabled={phase !== 'finished' || !rematchPlayer || isRematchReady(state, rematchPlayer) || connectionStatus === 'reconnecting'}
-          >
-            <RotateCcw size={18} />
-            {rematchPlayer && isRematchReady(state, rematchPlayer) ? '已同意，等待對手' : '同意再一局'}
-          </button>
-        </section>
-
         <section className="battleLog" aria-label="戰況紀錄">
           <div className="logHeading"><span>戰況</span><small>LIVE</small></div>
           <ol>
@@ -373,6 +305,47 @@ export function BattleBoard({
         </section>
       </aside>
     </main>
+  );
+}
+
+const PHASE_STEPS = [
+  { key: 'select-attack', label: '攻擊' },
+  { key: 'select-defense', label: '防守' },
+  { key: 'duel', label: '對決' },
+  { key: 'finished', label: '結果' },
+] as const;
+
+function PhaseGuide({
+  phase,
+  title,
+  prompt,
+}: {
+  phase: ReturnType<typeof getBattlePhase>;
+  title: string;
+  prompt: string;
+}) {
+  const activeIndex = PHASE_STEPS.findIndex((step) => step.key === phase);
+
+  return (
+    <section className="phaseGuide" aria-label="對局階段">
+      <div className="phaseGuideCopy">
+        <span className="sectionKicker">CURRENT PHASE</span>
+        <strong>{title}</strong>
+        <p>{prompt}</p>
+      </div>
+      <ol className="phaseSteps">
+        {PHASE_STEPS.map((step, index) => (
+          <li
+            className={index === activeIndex ? 'active' : index < activeIndex ? 'complete' : ''}
+            aria-current={index === activeIndex ? 'step' : undefined}
+            key={step.key}
+          >
+            <span>{index + 1}</span>
+            <strong>{step.label}</strong>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -603,7 +576,10 @@ function phaseTitle(state: BattleState, match: MatchSummary | null, seat: Player
   if (match?.status === 'waiting') return '等待對手加入';
   if (seat === 'spectator') return '觀戰模式';
   if (state.gameStatus === 'finished') return state.winner ? `${playerName(state.winner, match)} 勝利` : '本局平手';
-  return `${playerName(state.currentTurn, match)} 的回合`;
+  const phase = getBattlePhase(state);
+  if (phase === 'select-attack') return `${playerName(state.currentTurn, match)} 選擇攻擊`;
+  if (phase === 'select-defense') return `${playerName(otherPlayer(state.currentTurn), match)} 選擇防守`;
+  return '對決進行中';
 }
 
 function phasePrompt(state: BattleState, match: MatchSummary | null, seat: PlayerSeat | 'spectator' | null): string {

@@ -62,11 +62,8 @@ export function Lobby({
         <div className="sectionHeading">
           <div>
             <span className="sectionKicker">ONLINE LOBBY</span>
-            <h1>尋找下一場對決</h1>
+            <h1>對局大廳</h1>
           </div>
-          <button className="iconButton" type="button" onClick={onRefresh} title="更新對局" aria-label="更新對局">
-            <RefreshCw size={18} />
-          </button>
         </div>
 
         {!authReady ? (
@@ -196,13 +193,24 @@ export function Lobby({
             <span className="sectionKicker">MATCHES</span>
             <h2>公開對局</h2>
           </div>
-          <span className="roomCount">{matches.length} 場</span>
+          <div className="roomHeaderActions">
+            <span className="roomCount">{matches.length} 場</span>
+            <button className="iconButton" type="button" onClick={onRefresh} title="更新對局" aria-label="更新對局">
+              <RefreshCw size={18} />
+            </button>
+          </div>
         </div>
 
         {matches.length === 0 ? (
           <div className="emptyRooms">
             <Swords size={32} strokeWidth={1.5} />
             <strong>目前沒有公開對局</strong>
+            {user && (
+              <button className="primaryButton" type="button" onClick={onCreateMatch} disabled={busy}>
+                <Plus size={18} />
+                建立第一場對局
+              </button>
+            )}
           </div>
         ) : (
           <div className="roomTable" role="table" aria-label="對局清單">
