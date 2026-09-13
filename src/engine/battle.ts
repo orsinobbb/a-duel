@@ -529,7 +529,7 @@ function resolveClash(attacker: BattleCard, defender: BattleCard): { deadIds: st
   if (attacker.kind === 'explosive' || defender.kind === 'explosive') {
     return {
       deadIds: [attacker.id, defender.id],
-      text: `${attacker.name} 與 ${defender.name} 同歸於盡，雙方退場`,
+      text: `炸藥引爆！${attacker.name} 與 ${defender.name} 同歸於盡，雙方退場`,
     };
   }
 
