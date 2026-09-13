@@ -139,11 +139,12 @@ export function BattleApp() {
 
   async function onCreateMatch() {
     if (!user) return showNotice('請先登入', 'warn');
+    const battleDeck = snapshotDeckOrder();
     setBusy(true);
     try {
-      const result = await createMatch(user.token, deckOrder);
-      enterOnlineMatch(user, result.match, result.seat);
-      showNotice(`對局 ${result.match.id} 已建立`, 'success');
+      const result = await createMatch(user.token, battleDeck);
+      enterOnlineMatch(user, result.match, result.seat, battleDeck);
+      showNotice(`已套用目前牌序，對局 ${result.match.id} 已建立`, 'success');
     } catch (error) {
       showNotice(apiErrorText(error), 'error');
     } finally {
@@ -156,11 +157,12 @@ export function BattleApp() {
     const normalized = matchId.trim().toUpperCase();
     if (normalized.length !== 6) return showNotice('請輸入 6 碼對局代碼', 'warn');
 
+    const battleDeck = snapshotDeckOrder();
     setBusy(true);
     try {
-      const result = await joinMatch(user.token, normalized, deckOrder);
-      enterOnlineMatch(user, result.match, result.seat);
-      showNotice(result.seat === 'spectator' ? '已進入觀戰' : `已加入 Player ${result.seat}`, 'success');
+      const result = await joinMatch(user.token, normalized, battleDeck);
+      enterOnlineMatch(user, result.match, result.seat, battleDeck);
+      showNotice(result.seat === 'spectator' ? '已進入觀戰' : `已套用目前牌序，加入 Player ${result.seat}`, 'success');
     } catch (error) {
       showNotice(apiErrorText(error), 'error');
     } finally {
@@ -168,12 +170,17 @@ export function BattleApp() {
     }
   }
 
-  function enterOnlineMatch(nextUser: UserSession, match: MatchSummary, nextSeat: PlayerSeat | 'spectator') {
+  function enterOnlineMatch(
+    nextUser: UserSession,
+    match: MatchSummary,
+    nextSeat: PlayerSeat | 'spectator',
+    battleDeck: readonly DeckCardKey[],
+  ) {
     connectionRef.current?.close();
     setActiveMatch(match);
     setSeat(nextSeat);
     const localPlayer = nextSeat === 'B' ? 'B' : 'A';
-    setState(createInitialState(localPlayer, true, Math.random, { [localPlayer]: deckOrder }));
+    setState(createInitialState(localPlayer, true, Math.random, { [localPlayer]: battleDeck }));
     setView('match');
     setJoinCode(match.id);
     updateMatchUrl(match.id);
@@ -236,12 +243,13 @@ export function BattleApp() {
   }
 
   function startLocalBattle() {
+    const battleDeck = snapshotDeckOrder();
     connectionRef.current?.close();
     connectionRef.current = null;
     setActiveMatch(null);
     setSeat(null);
     setConnectionStatus('offline');
-    setState(createInitialState('A', false, Math.random, { A: deckOrder, B: deckOrder }));
+    setState(createInitialState('A', false, Math.random, { A: battleDeck, B: battleDeck }));
     setView('local');
     updateMatchUrl(null);
   }
@@ -252,12 +260,23 @@ export function BattleApp() {
   }
 
   function saveDeckOrder() {
+    if (persistDeckOrder(deckOrder)) showNotice('牌組順序已儲存，下一場將使用此牌序', 'success');
+  }
+
+  function snapshotDeckOrder(): DeckCardKey[] {
+    const battleDeck = [...deckOrder];
+    persistDeckOrder(battleDeck, false);
+    return battleDeck;
+  }
+
+  function persistDeckOrder(order: readonly DeckCardKey[], reportError = true): boolean {
     try {
-      window.localStorage.setItem(DECK_ORDER_STORAGE_KEY, JSON.stringify(deckOrder));
-      setSavedDeckOrder([...deckOrder]);
-      showNotice('牌組順序已儲存', 'success');
+      window.localStorage.setItem(DECK_ORDER_STORAGE_KEY, JSON.stringify(order));
+      setSavedDeckOrder([...order]);
+      return true;
     } catch {
-      showNotice('瀏覽器無法儲存牌組，請檢查隱私權設定', 'error');
+      if (reportError) showNotice('瀏覽器無法儲存牌組，請檢查隱私權設定', 'error');
+      return false;
     }
   }
 

@@ -4,9 +4,11 @@ import {
   confirmAttack,
   confirmDefense,
   createInitialState,
+  getDeckCardDefinition,
   selectAttacker,
   selectDefenseCard,
   selectTarget,
+  setPlayerDeckOrder,
   type BattleState,
 } from '../../src/engine/battle';
 import type { BattleAction, PlayerSeat } from '../../src/shared/protocol';
@@ -128,6 +130,29 @@ describe('online match rules', () => {
     if (!secondVote.ok) return;
     expect(secondVote.state.gameStatus).toBe('playing');
     expect(secondVote.state.rematchReady).toEqual({ A: false, B: false });
+  });
+
+  it('keeps each player custom deck order when an online rematch starts', () => {
+    const deckA = ['trap', 'rank1', 'explosive', 'rank2', 'rank3', 'rank4', 'rank5'] as const;
+    const deckB = ['explosive', 'trap', 'rank5', 'rank4', 'rank3', 'rank2', 'rank1'] as const;
+    let state = createInitialState('A', true, () => 0, { A: deckA });
+    state = setPlayerDeckOrder(state, 'B', deckB);
+    state = { ...state, gameStatus: 'finished', winner: 'A' };
+
+    const firstVote = applyAuthorizedAction(state, { type: 'restart' }, 'A');
+    expect(firstVote.ok).toBe(true);
+    if (!firstVote.ok) return;
+    const secondVote = applyAuthorizedAction(firstVote.state, { type: 'restart' }, 'B');
+    expect(secondVote.ok).toBe(true);
+    if (!secondVote.ok) return;
+
+    expect(secondVote.state.deckOrders).toEqual({ A: [...deckA], B: [...deckB] });
+    expect(secondVote.state.cards.filter((card) => card.owner === 'A').map((card) => card.name)).toEqual(
+      deckA.map((key) => getDeckCardDefinition(key).name),
+    );
+    expect(secondVote.state.cards.filter((card) => card.owner === 'B').map((card) => card.name)).toEqual(
+      deckB.map((key) => getDeckCardDefinition(key).name),
+    );
   });
 
   it('rejects malformed actions at the socket boundary', () => {
