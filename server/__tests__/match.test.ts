@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { confirmAttack, confirmDefense, createInitialState, selectAttacker, selectDefenseCard, selectTarget } from '../../src/engine/battle';
+import {
+  DUEL_DURATION_MS,
+  confirmAttack,
+  confirmDefense,
+  createInitialState,
+  selectAttacker,
+  selectDefenseCard,
+  selectTarget,
+  type BattleState,
+} from '../../src/engine/battle';
+import type { BattleAction, PlayerSeat } from '../../src/shared/protocol';
 import { applyAuthorizedAction, getMatchLifecycle, isBattleAction } from '../match';
 import type { MatchRecord } from '../protocol';
 
@@ -61,6 +71,27 @@ describe('online match rules', () => {
     state = selectDefenseCard(state, state.selectedTargetId!);
     state = confirmDefense(state, 0);
     expect(applyAuthorizedAction(state, { type: 'resolve' }, 'A').ok).toBe(true);
+  });
+
+  it('removes both cards when a marquis attacks an explosive online', () => {
+    let state = createInitialState();
+    const apply = (action: BattleAction, seat: PlayerSeat): BattleState => {
+      const result = applyAuthorizedAction(state, action, seat);
+      expect(result.ok).toBe(true);
+      return result.ok ? result.state : state;
+    };
+
+    state = apply({ type: 'selectAttacker', cardId: 'A-1' }, 'A');
+    state = apply({ type: 'selectTarget', cardId: 'B-5' }, 'A');
+    state = apply({ type: 'confirmAttack' }, 'A');
+    state = apply({ type: 'selectDefenseCard', cardId: 'B-5' }, 'B');
+    state = apply({ type: 'confirmDefense' }, 'B');
+    state = { ...state, duelStartedAt: Date.now() - DUEL_DURATION_MS };
+    state = apply({ type: 'resolve' }, 'A');
+
+    expect(state.cards.find((card) => card.id === 'A-1')?.alive).toBe(false);
+    expect(state.cards.find((card) => card.id === 'B-5')?.alive).toBe(false);
+    expect(state.messages[2]?.text).toContain('同歸於盡');
   });
 
   it('derives waiting, playing and finished room states', () => {
